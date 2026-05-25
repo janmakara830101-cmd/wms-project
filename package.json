@@ -1,0 +1,11 @@
+{
+  "name": "wms-project",
+  "version": "1.0.0",
+  "description": "Warehouse Management System",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "start": "node backend/server.js",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev"
+  }
+}
