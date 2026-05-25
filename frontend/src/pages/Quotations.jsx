@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { can, fm, today, calcTotals } from '../utils/helpers';
@@ -7,6 +7,8 @@ import Badge from '../components/Badge';
 import { SigBadge } from '../components/Badge';
 import DocViewer from '../components/DocViewer';
 import SigModal from '../components/SigModal';
+import Spinner from '../components/Spinner';
+import useLoad from '../utils/useLoad';
 
 const F = ({ label, children }) => <div><label className="block text-[11.5px] text-gray-500 mb-1">{label}</label>{children}</div>;
 const Input = (p) => <input className="w-full px-2 py-1 border border-gray-200 rounded text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p} />;
@@ -25,12 +27,11 @@ export default function Quotations() {
   const [sigModal, setSigModal] = useState(null);
   const [form, setForm] = useState({ date: today(), customer_id:'', items:[], overall_disc:0, overall_disc_type:'pct', notes:'' });
 
-  const load = () => {
-    api.get('/quotations').then(r => setQts(r.data));
-    api.get('/customers').then(r => setCustomers(r.data));
-    api.get('/products').then(r => setProducts(r.data));
+  const load = async () => {
+    const [r1, r2, r3] = await Promise.all([api.get('/quotations'), api.get('/customers'), api.get('/products')]);
+    setQts(r1.data); setCustomers(r2.data); setProducts(r3.data);
   };
-  useEffect(load, []);
+  const { loading } = useLoad(load);
 
   const filtered = search ? qts.filter(q => q.id?.toLowerCase().includes(search.toLowerCase()) || q.customer_name?.toLowerCase().includes(search.toLowerCase())) : qts;
 
@@ -61,6 +62,7 @@ export default function Quotations() {
 
   const t = calcTotals(form.items, form.overall_disc, form.overall_disc_type, 0);
 
+  if (loading) return <Spinner />;
 
   return (
     <div>

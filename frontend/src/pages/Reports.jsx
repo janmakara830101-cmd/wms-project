@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { fm, xlsExport } from '../utils/helpers';
+import Spinner from '../components/Spinner';
 
 const tabs = [
   { key: 'products',    label: 'Products',      icon: 'ti-box' },
@@ -43,7 +44,7 @@ export default function Reports() {
   }
 
   function renderTable() {
-    if (loading) return <div className="py-12 text-center text-gray-400"><i className="ti ti-loader-2 animate-spin text-2xl" /></div>;
+    if (loading) return <Spinner />;
     if (!data.length) return <div className="py-12 text-center text-gray-400">No data found</div>;
 
     switch (tab) {

@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import Modal, { Btn, ModalActions } from '../components/Modal';
+import Spinner from '../components/Spinner';
+import useLoad from '../utils/useLoad';
 
 const ROLES = ['admin', 'manager', 'staff', 'viewer'];
 const F = ({ label, children }) => <div><label className="block text-[11.5px] text-gray-500 mb-1">{label}</label>{children}</div>;
@@ -19,8 +21,8 @@ export default function Users() {
   const [pwForm, setPwForm] = useState({ password: '', confirm: '' });
   const [pwErr, setPwErr] = useState('');
 
-  const load = () => api.get('/users').then(r => setList(r.data));
-  useEffect(load, []);
+  const load = async () => { const r = await api.get('/users'); setList(r.data); };
+  const { loading } = useLoad(load);
 
   const filtered = search
     ? list.filter(u => u.username?.toLowerCase().includes(search.toLowerCase()) || u.display_name?.toLowerCase().includes(search.toLowerCase()) || u.role?.toLowerCase().includes(search.toLowerCase()))
@@ -67,6 +69,8 @@ export default function Users() {
     staff:   { canCreate: '✓', canEdit: '✓', canDelete: '—', canApprove: '—', users: '—' },
     viewer:  { canCreate: '—', canEdit: '—', canDelete: '—', canApprove: '—', users: '—' },
   };
+
+  if (loading) return <Spinner />;
 
   return (
     <div>

@@ -1,7 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { Btn } from '../components/Modal';
+import Spinner from '../components/Spinner';
+import useLoad from '../utils/useLoad';
+
+const F = ({ label, children, hint }) => (
+  <div>
+    <label className="block text-[11.5px] text-gray-500 mb-1">{label}</label>
+    {children}
+    {hint && <div className="text-[11px] text-gray-400 mt-0.5">{hint}</div>}
+  </div>
+);
+const Input = (p) => <input className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p} />;
+const Select = ({ children, ...p }) => <select className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p}>{children}</select>;
 
 const CURRENCIES = [
   { sym: '$', name: 'USD — US Dollar' },
@@ -27,25 +39,25 @@ export default function Settings() {
   const [pwOk, setPwOk] = useState(false);
   const [tab, setTab] = useState('company');
 
-  useEffect(() => {
-    api.get('/settings').then(r => {
-      const s = r.data;
-      setForm({
-        company_name: s.company_name || '',
-        company_address: s.company_address || '',
-        company_phone: s.company_phone || '',
-        company_email: s.company_email || '',
-        company_logo: s.company_logo || '',
-        curr_symbol: s.curr_symbol || '$',
-        tax_label: s.tax_label || 'Tax',
-        tax_rate: s.tax_rate || '10',
-        invoice_prefix: s.invoice_prefix || 'INV-',
-        quote_prefix: s.quote_prefix || 'QT-',
-        delivery_prefix: s.delivery_prefix || 'DS-',
-        footer_note: s.footer_note || '',
-      });
+  const load = async () => {
+    const r = await api.get('/settings');
+    const s = r.data;
+    setForm({
+      company_name: s.company_name || '',
+      company_address: s.company_address || '',
+      company_phone: s.company_phone || '',
+      company_email: s.company_email || '',
+      company_logo: s.company_logo || '',
+      curr_symbol: s.curr_symbol || '$',
+      tax_label: s.tax_label || 'Tax',
+      tax_rate: s.tax_rate || '10',
+      invoice_prefix: s.invoice_prefix || 'INV-',
+      quote_prefix: s.quote_prefix || 'QT-',
+      delivery_prefix: s.delivery_prefix || 'DS-',
+      footer_note: s.footer_note || '',
     });
-  }, []);
+  };
+  const { loading } = useLoad(load);
 
   async function saveSettings() {
     await api.put('/settings', form);
@@ -91,15 +103,7 @@ export default function Settings() {
     reader.readAsText(file);
   }
 
-  const F = ({ label, children, hint }) => (
-    <div>
-      <label className="block text-[11.5px] text-gray-500 mb-1">{label}</label>
-      {children}
-      {hint && <div className="text-[11px] text-gray-400 mt-0.5">{hint}</div>}
-    </div>
-  );
-  const Input = (p) => <input className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p} />;
-  const Select = ({ children, ...p }) => <select className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p}>{children}</select>;
+  if (loading) return <Spinner />;
 
   const TABS = [
     { key: 'company', label: 'Company', icon: 'ti-building' },

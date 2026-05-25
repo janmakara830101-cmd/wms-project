@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { can } from '../utils/helpers';
 import Modal, { Btn, ModalActions } from '../components/Modal';
+import Spinner from '../components/Spinner';
+import useLoad from '../utils/useLoad';
 
 const F = ({ label, children }) => <div><label className="block text-[11.5px] text-gray-500 mb-1">{label}</label>{children}</div>;
 const Input = (p) => <input className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p} />;
@@ -14,8 +16,8 @@ export default function Customers() {
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState({ name:'', phone:'', email:'', address:'' });
 
-  const load = () => api.get('/customers').then(r => setList(r.data));
-  useEffect(load, []);
+  const load = async () => { const r = await api.get('/customers'); setList(r.data); };
+  const { loading } = useLoad(load);
 
   const filtered = search ? list.filter(c => ['name','phone','email','address'].some(k => (c[k]||'').toLowerCase().includes(search.toLowerCase()))) : list;
 
@@ -35,6 +37,8 @@ export default function Customers() {
     if (!window.confirm('Delete customer?')) return;
     await api.delete(`/customers/${id}`); load();
   }
+
+  if (loading) return <Spinner />;
 
   return (
     <div>

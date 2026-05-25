@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { can, fm, today, calcTotals } from '../utils/helpers';
@@ -7,6 +7,8 @@ import Badge from '../components/Badge';
 import { SigBadge } from '../components/Badge';
 import DocViewer from '../components/DocViewer';
 import SigModal from '../components/SigModal';
+import Spinner from '../components/Spinner';
+import useLoad from '../utils/useLoad';
 
 const F = ({ label, children }) => <div><label className="block text-[11.5px] text-gray-500 mb-1">{label}</label>{children}</div>;
 const Input = (p) => <input className="w-full px-2 py-1 border border-gray-200 rounded text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p} />;
@@ -24,11 +26,11 @@ export default function Deliveries() {
   const [sigModal, setSigModal] = useState(null);
   const [form, setForm] = useState({ invoice_id: '', date: today(), delivery_date: '', address: '', driver: '', vehicle: '', notes: '', items: [] });
 
-  const load = () => {
-    api.get('/deliveries').then(r => setDels(r.data));
-    api.get('/invoices').then(r => setInvoices(r.data));
+  const load = async () => {
+    const [r1, r2] = await Promise.all([api.get('/deliveries'), api.get('/invoices')]);
+    setDels(r1.data); setInvoices(r2.data);
   };
-  useEffect(load, []);
+  const { loading } = useLoad(load);
 
   const filtered = search
     ? dels.filter(d => d.id?.toLowerCase().includes(search.toLowerCase()) || d.customer_name?.toLowerCase().includes(search.toLowerCase()) || d.invoice_id?.toLowerCase().includes(search.toLowerCase()))
@@ -85,6 +87,8 @@ export default function Deliveries() {
   const statusLabel = { draft: 'Dispatch', dispatched: 'Mark Delivered' };
   const statusIcon = { draft: 'ti-truck', dispatched: 'ti-circle-check' };
   const statusColor = { draft: 'bg-amber-50 border-amber-200 text-amber-700', dispatched: 'bg-blue-50 border-blue-200 text-blue-700' };
+
+  if (loading) return <Spinner />;
 
   return (
     <div>

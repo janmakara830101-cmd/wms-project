@@ -1,9 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { can, fm, today } from '../utils/helpers';
 import Modal, { Btn, ModalActions } from '../components/Modal';
 import { CatBadge, ShelfBadge, StockBar } from '../components/Badge';
+import Spinner from '../components/Spinner';
+import useLoad from '../utils/useLoad';
+
+const F = ({ label, children }) => <div><label className="block text-[11.5px] text-gray-500 mb-1">{label}</label>{children}</div>;
+const Input = ({ ...p }) => <input className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p} />;
+const Select = ({ children, ...p }) => <select className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p}>{children}</select>;
 
 export default function Products() {
   const { user, settings } = useAuth();
@@ -22,12 +28,11 @@ export default function Products() {
   const [siForm, setSiForm] = useState({ product_id:'', qty:1, date:today(), supplier_id:'', shelf:'', ref:'', note:'' });
   const [soForm, setSoForm] = useState({ product_id:'', qty:1, date:today(), ref:'', note:'' });
 
-  const load = () => {
-    api.get('/products').then(r => setProducts(r.data));
-    api.get('/categories').then(r => setCats(r.data));
-    api.get('/suppliers').then(r => setSupps(r.data));
+  const load = async () => {
+    const [r1, r2, r3] = await Promise.all([api.get('/products'), api.get('/categories'), api.get('/suppliers')]);
+    setProducts(r1.data); setCats(r2.data); setSupps(r3.data);
   };
-  useEffect(load, []);
+  const { loading } = useLoad(load);
 
   let list = catF === 'all' ? products : products.filter(p => p.category_id == catF);
   if (search) { const q = search.toLowerCase(); list = list.filter(p => (p.name||'').toLowerCase().includes(q) || (p.name_kh||'').toLowerCase().includes(q) || (p.sku||'').toLowerCase().includes(q)); }
@@ -67,9 +72,7 @@ export default function Products() {
     setSoModal(false); load();
   }
 
-  const F = ({ label, children }) => <div><label className="block text-[11.5px] text-gray-500 mb-1">{label}</label>{children}</div>;
-  const Input = ({ ...p }) => <input className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p} />;
-  const Select = ({ children, ...p }) => <select className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p}>{children}</select>;
+  if (loading) return <Spinner />;
 
   // Adjustment preview
   const adjProd = products.find(p => p.id == adjForm.product_id);

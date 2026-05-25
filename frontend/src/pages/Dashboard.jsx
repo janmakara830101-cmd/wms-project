@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { fm, calcTotals, invPaid } from '../utils/helpers';
 import Badge from '../components/Badge';
 import { SigBadge } from '../components/Badge';
+import Spinner from '../components/Spinner';
 
 export default function Dashboard() {
   const { settings } = useAuth();
@@ -17,7 +18,7 @@ export default function Dashboard() {
     api.get('/reports/dashboard').then(r => setData(r.data)).catch(console.error);
   }, []);
 
-  if (!data) return <div className="flex items-center justify-center h-64 text-gray-400">Loading…</div>;
+  if (!data) return <Spinner text="Loading dashboard…" />;
 
   const { products, invoices, pendingQuotations, outMovements } = data;
   const low = products.filter(p => parseInt(p.stock) < parseInt(p.min_stock));

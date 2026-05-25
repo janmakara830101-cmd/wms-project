@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { can } from '../utils/helpers';
 import Modal, { Btn, ModalActions } from '../components/Modal';
+import Spinner from '../components/Spinner';
+import useLoad from '../utils/useLoad';
 
 const ICONS = ['ti-droplet','ti-tool','ti-bolt','ti-settings','ti-pencil','ti-shield','ti-package','ti-truck','ti-cpu','ti-building-factory','ti-flame','ti-battery','ti-filter','ti-screw','ti-circuit-switchboard','ti-first-aid-kit'];
 const COLORS = [['#E6F1FB','#0C447C'],['#FAEEDA','#633806'],['#EAF3DE','#27500A'],['#EEEDFE','#3C3489'],['#FBEAF0','#72243E'],['#FCEBEB','#791F1F'],['#E1F5EE','#085041'],['#FAECE7','#712B13'],['#F1EFE8','#444441']];
@@ -14,11 +16,11 @@ export default function Categories() {
   const [modal, setModal] = useState(null); // null | {cat}
   const [form, setForm] = useState({ name:'', name_kh:'', icon:'ti-package', color:'#E6F1FB', text_color:'#0C447C' });
 
-  const load = () => {
-    api.get('/categories').then(r => setCats(r.data));
-    api.get('/products').then(r => setProducts(r.data));
+  const load = async () => {
+    const [r1, r2] = await Promise.all([api.get('/categories'), api.get('/products')]);
+    setCats(r1.data); setProducts(r2.data);
   };
-  useEffect(load, []);
+  const { loading } = useLoad(load);
 
   function openForm(cat) {
     setForm(cat ? { name: cat.name, name_kh: cat.name_kh||'', icon: cat.icon, color: cat.color, text_color: cat.text_color } : { name:'', name_kh:'', icon:'ti-package', color:'#E6F1FB', text_color:'#0C447C' });
@@ -37,6 +39,8 @@ export default function Categories() {
     try { await api.delete(`/categories/${cat.id}`); load(); }
     catch (err) { alert(err.response?.data?.error || 'Error'); }
   }
+
+  if (loading) return <Spinner />;
 
   return (
     <div>

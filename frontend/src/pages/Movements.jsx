@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { can, today } from '../utils/helpers';
 import Modal, { Btn, ModalActions } from '../components/Modal';
 import { CatBadge, ShelfBadge } from '../components/Badge';
+import Spinner from '../components/Spinner';
+import useLoad from '../utils/useLoad';
 
 const F = ({ label, children }) => <div><label className="block text-[11.5px] text-gray-500 mb-1">{label}</label>{children}</div>;
 const Input = (p) => <input className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p} />;
@@ -22,12 +24,11 @@ export default function Movements() {
   const [soForm, setSoForm] = useState({ product_id:'', qty:1, date:today(), ref:'', note:'' });
   const [adjForm, setAdjForm] = useState({ product_id:'', adj_type:'set', qty:0, reason:'' });
 
-  const load = () => {
-    api.get('/movements').then(r => setMovs(r.data));
-    api.get('/products').then(r => setProducts(r.data));
-    api.get('/suppliers').then(r => setSupps(r.data));
+  const load = async () => {
+    const [r1, r2, r3] = await Promise.all([api.get('/movements'), api.get('/products'), api.get('/suppliers')]);
+    setMovs(r1.data); setProducts(r2.data); setSupps(r3.data);
   };
-  useEffect(load, []);
+  const { loading } = useLoad(load);
 
   const list = filter === 'all' ? movs : movs.filter(m => m.type === filter);
 
@@ -53,6 +54,8 @@ export default function Movements() {
     adjPreview = { ns, diff: ns - parseInt(adjProd.stock) };
   }
 
+
+  if (loading) return <Spinner />;
 
   return (
     <div>

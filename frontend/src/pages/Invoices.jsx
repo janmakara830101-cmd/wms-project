@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { can, fm, today, calcTotals, invPaid } from '../utils/helpers';
@@ -7,6 +7,8 @@ import Badge from '../components/Badge';
 import { SigBadge } from '../components/Badge';
 import DocViewer from '../components/DocViewer';
 import SigModal from '../components/SigModal';
+import Spinner from '../components/Spinner';
+import useLoad from '../utils/useLoad';
 
 const F = ({ label, children }) => <div><label className="block text-[11.5px] text-gray-500 mb-1">{label}</label>{children}</div>;
 const Input = (p) => <input className="w-full px-2 py-1 border border-gray-200 rounded text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p} />;
@@ -27,12 +29,11 @@ export default function Invoices() {
   const [editForm, setEditForm] = useState({});
   const [payForm, setPayForm] = useState({ date: today(), amount:0, method:'cash', ref:'', note:'' });
 
-  const load = () => {
-    api.get('/invoices').then(r => setInvs(r.data));
-    api.get('/customers').then(r => setCustomers(r.data));
-    api.get('/products').then(r => setProducts(r.data));
+  const load = async () => {
+    const [r1, r2, r3] = await Promise.all([api.get('/invoices'), api.get('/customers'), api.get('/products')]);
+    setInvs(r1.data); setCustomers(r2.data); setProducts(r3.data);
   };
-  useEffect(load, []);
+  const { loading } = useLoad(load);
 
   const filtered = search ? invs.filter(i => i.id?.toLowerCase().includes(search.toLowerCase()) || i.customer_name?.toLowerCase().includes(search.toLowerCase())) : invs;
 
@@ -53,6 +54,8 @@ export default function Invoices() {
   }
   async function delPayment(invId, payId) { await api.delete(`/invoices/${invId}/payments/${payId}`); load(); const r = await api.get('/invoices'); const up = r.data.find(i=>i.id===invId); if(up) setPayModal({inv:up}); }
 
+
+  if (loading) return <Spinner />;
 
   return (
     <div>
