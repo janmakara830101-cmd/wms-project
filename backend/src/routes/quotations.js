@@ -5,7 +5,7 @@ const { auth, requirePerm } = require('../middleware/auth');
 router.get('/', auth, async (req, res) => {
   const { rows: qts } = await pool.query(`
     SELECT q.*, c.name as customer_name,
-      json_agg(json_build_object('id',qi.id,'product_id',qi.product_id,'qty',qi.qty,'price',qi.price,'disc',qi.disc,'remark',qi.remark,'product_name',p.name,'product_name_kh',p.name_kh) ORDER BY qi.id) as items,
+      json_agg(json_build_object('id',qi.id,'product_id',qi.product_id,'qty',qi.qty,'price',qi.price,'disc',qi.disc,'remark',qi.remark,'product_name',p.name) ORDER BY qi.id) as items,
       json_build_object('issuer', sig_i.signature_data, 'issuer_date', sig_i.signed_at, 'customer', sig_c.signature_data, 'customer_date', sig_c.signed_at) as sigs
     FROM quotations q
     LEFT JOIN customers c ON q.customer_id=c.id
@@ -106,7 +106,7 @@ router.post('/:id/convert', auth, requirePerm('canCreate'), async (req, res) => 
         [it.product_id, it.qty, today, pr[0]?.shelf||'', invId, req.user.id]
       );
     }
-    await client.query(`UPDATE quotations SET status='invoiced' WHERE id=$1`, [req.params.id]);
+    await client.query(`UPDATE quotations SET status='converted' WHERE id=$1`, [req.params.id]);
     await client.query('COMMIT');
     res.json({ id: invId });
   } catch (err) {
