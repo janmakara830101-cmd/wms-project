@@ -23,7 +23,7 @@ export default function Quotations() {
   const [modal, setModal] = useState(null);
   const [viewModal, setViewModal] = useState(null);
   const [sigModal, setSigModal] = useState(null);
-  const [form, setForm] = useState({ date: today(), customer_id:'', items:[], overall_disc:0, overall_disc_type:'pct', tax_rate: taxRate, notes:'' });
+  const [form, setForm] = useState({ date: today(), customer_id:'', items:[], overall_disc:0, overall_disc_type:'pct', notes:'' });
 
   const load = () => {
     api.get('/quotations').then(r => setQts(r.data));
@@ -36,10 +36,10 @@ export default function Quotations() {
 
   function openForm(qt) {
     if (qt) {
-      setForm({ date: qt.date, customer_id: qt.customer_id, items: (qt.items||[]).filter(i=>i?.product_id).map(i=>({product_id:i.product_id,qty:i.qty,price:parseFloat(i.price),disc:0,remark:i.remark||''})), overall_disc: parseFloat(qt.overall_disc||0), overall_disc_type: qt.overall_disc_type||'pct', tax_rate: parseFloat(qt.tax_rate||taxRate), notes: qt.notes||'' });
+      setForm({ date: qt.date, customer_id: qt.customer_id, items: (qt.items||[]).filter(i=>i?.product_id).map(i=>({product_id:i.product_id,qty:i.qty,price:parseFloat(i.price),disc:0,remark:i.remark||''})), overall_disc: parseFloat(qt.overall_disc||0), overall_disc_type: qt.overall_disc_type||'pct', notes: qt.notes||'' });
     } else {
       const p = products[0];
-      setForm({ date: today(), customer_id: customers[0]?.id||'', items: p ? [{ product_id: p.id, qty:1, price: parseFloat(p.price), disc:0, remark:'' }] : [], overall_disc:0, overall_disc_type:'pct', tax_rate: taxRate, notes:'' });
+      setForm({ date: today(), customer_id: customers[0]?.id||'', items: p ? [{ product_id: p.id, qty:1, price: parseFloat(p.price), disc:0, remark:'' }] : [], overall_disc:0, overall_disc_type:'pct', notes:'' });
     }
     setModal({ qt });
   }
@@ -59,7 +59,7 @@ export default function Quotations() {
   async function convert(id) { await api.post(`/quotations/${id}/convert`); load(); }
   async function del(id) { if (!window.confirm(`Delete quotation ${id}?`)) return; await api.delete(`/quotations/${id}`); load(); }
 
-  const t = calcTotals(form.items, form.overall_disc, form.overall_disc_type, parseFloat(form.tax_rate||taxRate));
+  const t = calcTotals(form.items, form.overall_disc, form.overall_disc_type, 0);
 
 
   return (
@@ -77,7 +77,7 @@ export default function Quotations() {
           <tbody>
             {filtered.map(q => {
               const items = (q.items||[]).filter(i=>i?.product_id);
-              const t2 = calcTotals(items, q.overall_disc||0, q.overall_disc_type||'pct', parseFloat(q.tax_rate||taxRate));
+              const t2 = calcTotals(items, q.overall_disc||0, q.overall_disc_type||'pct', 0);
               const dt = t2.ld + t2.oda;
               return (
                 <tr key={q.id} className="hover:bg-gray-50">
@@ -140,16 +140,7 @@ export default function Quotations() {
           <div className="bg-gray-50 rounded-md p-3 mb-3 text-[12.5px]">
             <div className="flex justify-between text-gray-500 py-0.5"><span>Subtotal</span><span>{fm(t.sub,sym)}</span></div>
             {t.oda>0&&<div className="flex justify-between text-red-600 py-0.5"><span>Discount</span><span>− {fm(t.oda,sym)}</span></div>}
-            <div className="flex justify-between text-gray-500 py-0.5"><span>After discount</span><span>{fm(t.ad,sym)}</span></div>
-            <div className="flex justify-between text-gray-500 py-0.5 items-center">
-              <div className="flex items-center gap-1.5">
-                <span>{settings?.tax_label||'Tax'}</span>
-                <input type="number" min="0" max="100" step="0.5" value={form.tax_rate} onChange={e=>setForm(f=>({...f,tax_rate:parseFloat(e.target.value)||0}))} className="w-14 px-1.5 py-0.5 border border-gray-200 rounded text-[11.5px] focus:outline-none focus:border-[#1D9E75]" />
-                <span>%</span>
-              </div>
-              <span>{fm(t.tax,sym)}</span>
-            </div>
-            <div className="flex justify-between font-medium border-t border-gray-200 mt-1 pt-1.5 text-[13.5px]"><span>Total</span><span>{fm(t.total,sym)}</span></div>
+            <div className="flex justify-between font-medium border-t border-gray-200 mt-1 pt-1.5 text-[13.5px]"><span>Total</span><span>{fm(t.ad,sym)}</span></div>
           </div>
           <div className="mb-3"><F label="Notes"><Input value={form.notes} onChange={e=>setForm(f=>({...f,notes:e.target.value}))} /></F></div>
           <ModalActions><Btn onClick={() => setModal(null)}>Cancel</Btn><Btn variant="primary" onClick={save}>{modal.qt?.id ? 'Update' : 'Save'}</Btn></ModalActions>
