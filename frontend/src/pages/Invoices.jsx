@@ -8,6 +8,10 @@ import { SigBadge } from '../components/Badge';
 import DocViewer from '../components/DocViewer';
 import SigModal from '../components/SigModal';
 
+const F = ({ label, children }) => <div><label className="block text-[11.5px] text-gray-500 mb-1">{label}</label>{children}</div>;
+const Input = (p) => <input className="w-full px-2 py-1 border border-gray-200 rounded text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p} />;
+const Select = ({ children, ...p }) => <select className="w-full px-2 py-1 border border-gray-200 rounded text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p}>{children}</select>;
+
 export default function Invoices() {
   const { user, settings } = useAuth();
   const sym = settings?.curr_symbol || '$';
@@ -49,9 +53,6 @@ export default function Invoices() {
   }
   async function delPayment(invId, payId) { await api.delete(`/invoices/${invId}/payments/${payId}`); load(); const r = await api.get('/invoices'); const up = r.data.find(i=>i.id===invId); if(up) setPayModal({inv:up}); }
 
-  const F = ({ label, children }) => <div><label className="block text-[11.5px] text-gray-500 mb-1">{label}</label>{children}</div>;
-  const Input = (p) => <input className="w-full px-2 py-1 border border-gray-200 rounded text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p} />;
-  const Select = ({ children, ...p }) => <select className="w-full px-2 py-1 border border-gray-200 rounded text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p}>{children}</select>;
 
   return (
     <div>

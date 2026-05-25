@@ -4,6 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import { can } from '../utils/helpers';
 import Modal, { Btn, ModalActions } from '../components/Modal';
 
+const F = ({ label, children }) => <div><label className="block text-[11.5px] text-gray-500 mb-1">{label}</label>{children}</div>;
+const Input = (p) => <input className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p} />;
+
 export default function Suppliers() {
   const { user } = useAuth();
   const [list, setList] = useState([]);
@@ -32,9 +35,6 @@ export default function Suppliers() {
     if (!window.confirm('Delete supplier?')) return;
     await api.delete(`/suppliers/${id}`); load();
   }
-
-  const F = ({ label, children }) => <div><label className="block text-[11.5px] text-gray-500 mb-1">{label}</label>{children}</div>;
-  const Input = (p) => <input className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p} />;
 
   return (
     <div>

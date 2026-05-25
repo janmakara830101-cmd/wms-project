@@ -5,6 +5,10 @@ import { can, today } from '../utils/helpers';
 import Modal, { Btn, ModalActions } from '../components/Modal';
 import { CatBadge, ShelfBadge } from '../components/Badge';
 
+const F = ({ label, children }) => <div><label className="block text-[11.5px] text-gray-500 mb-1">{label}</label>{children}</div>;
+const Input = (p) => <input className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p} />;
+const Select = ({ children, ...p }) => <select className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p}>{children}</select>;
+
 export default function Movements() {
   const { user } = useAuth();
   const [movs, setMovs] = useState([]);
@@ -49,9 +53,6 @@ export default function Movements() {
     adjPreview = { ns, diff: ns - parseInt(adjProd.stock) };
   }
 
-  const F = ({ label, children }) => <div><label className="block text-[11.5px] text-gray-500 mb-1">{label}</label>{children}</div>;
-  const Input = (p) => <input className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p} />;
-  const Select = ({ children, ...p }) => <select className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p}>{children}</select>;
 
   return (
     <div>
