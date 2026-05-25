@@ -4,6 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import Modal, { Btn, ModalActions } from '../components/Modal';
 
 const ROLES = ['admin', 'manager', 'staff', 'viewer'];
+const F = ({ label, children }) => <div><label className="block text-[11.5px] text-gray-500 mb-1">{label}</label>{children}</div>;
+const Input = (p) => <input className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p} />;
+const Select = ({ children, ...p }) => <select className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p}>{children}</select>;
 const roleColor = { admin: 'bg-red-100 text-red-700', manager: 'bg-blue-100 text-blue-700', staff: 'bg-green-100 text-green-700', viewer: 'bg-gray-100 text-gray-600' };
 
 export default function Users() {
@@ -57,9 +60,6 @@ export default function Users() {
     setPwModal(null); setPwErr('');
   }
 
-  const F = ({ label, children }) => <div><label className="block text-[11.5px] text-gray-500 mb-1">{label}</label>{children}</div>;
-  const Input = (p) => <input className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p} />;
-  const Select = ({ children, ...p }) => <select className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p}>{children}</select>;
 
   const permMap = {
     admin:   { canCreate: '✓', canEdit: '✓', canDelete: '✓', canApprove: '✓', users: '✓' },
@@ -99,9 +99,9 @@ export default function Users() {
                 </td>
                 <td className="px-2 py-2 border-b border-gray-50">
                   <div className="flex gap-1">
-                    <Btn variant="edit" onClick={() => openEdit(u)}><i className="ti ti-edit" /></Btn>
-                    <Btn variant="sm" className="bg-amber-50 border-amber-200 text-amber-700" onClick={() => { setPwForm({ password: '', confirm: '' }); setPwErr(''); setPwModal({ u }); }} title="Reset Password"><i className="ti ti-lock-open" /></Btn>
-                    {u.id !== me?.id && <Btn variant="danger" onClick={() => del(u.id)}><i className="ti ti-trash" /></Btn>}
+                    <Btn variant="edit" onClick={() => openEdit(u)}><i className="ti ti-edit" />Edit</Btn>
+                    <Btn variant="sm" className="bg-amber-50 border-amber-200 text-amber-700" onClick={() => { setPwForm({ password: '', confirm: '' }); setPwErr(''); setPwModal({ u }); }}><i className="ti ti-lock-open" />Reset Password</Btn>
+                    {u.id !== me?.id && <Btn variant="danger" onClick={() => del(u.id)}><i className="ti ti-trash" />Delete</Btn>}
                   </div>
                 </td>
               </tr>

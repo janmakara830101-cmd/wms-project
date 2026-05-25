@@ -61,8 +61,8 @@ export default function Suppliers() {
                   <td className="px-2 py-2 border-b border-gray-50 text-gray-500">{s.products}</td>
                   <td className="px-2 py-2 border-b border-gray-50">
                     <div className="flex gap-1">
-                      {can(user?.role,'canEdit') && <Btn variant="edit" onClick={() => openForm(s)}><i className="ti ti-edit" /></Btn>}
-                      {can(user?.role,'canDelete') && <Btn variant="danger" onClick={() => del(s.id)}><i className="ti ti-trash" /></Btn>}
+                      {can(user?.role,'canEdit') && <Btn variant="edit" onClick={() => openForm(s)}><i className="ti ti-edit" />Edit</Btn>}
+                      {can(user?.role,'canDelete') && <Btn variant="danger" onClick={() => del(s.id)}><i className="ti ti-trash" />Delete</Btn>}
                     </div>
                   </td>
                 </tr>

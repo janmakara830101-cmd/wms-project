@@ -133,10 +133,10 @@ export default function Products() {
                   <td className="px-2 py-2 border-b border-gray-50"><ShelfBadge shelf={p.shelf} /></td>
                   <td className="px-2 py-2 border-b border-gray-50">
                     <div className="flex gap-1 flex-wrap">
-                      {can(user?.role,'canCreate') && <Btn variant="sm" onClick={() => { setSiForm({ product_id: p.id, qty:1, date:today(), supplier_id:'', shelf:p.shelf||'', ref:'', note:'' }); setSiModal(true); }} title="Stock In"><i className="ti ti-plus text-blue-600" /></Btn>}
-                      {can(user?.role,'canEdit') && <Btn variant="edit" onClick={() => openForm(p)}><i className="ti ti-edit" /></Btn>}
-                      {can(user?.role,'canEdit') && <Btn variant="warn" onClick={() => { setAdjForm({ product_id: p.id, adj_type:'set', qty: parseInt(p.stock), reason:'' }); setAdjModal(true); }}><i className="ti ti-adjustments" /></Btn>}
-                      {can(user?.role,'canDelete') && <Btn variant="danger" onClick={() => del(p.id)}><i className="ti ti-trash" /></Btn>}
+                      {can(user?.role,'canCreate') && <Btn variant="sm" onClick={() => { setSiForm({ product_id: p.id, qty:1, date:today(), supplier_id:'', shelf:p.shelf||'', ref:'', note:'' }); setSiModal(true); }}><i className="ti ti-plus text-blue-600" />Stock In</Btn>}
+                      {can(user?.role,'canEdit') && <Btn variant="edit" onClick={() => openForm(p)}><i className="ti ti-edit" />Edit</Btn>}
+                      {can(user?.role,'canEdit') && <Btn variant="warn" onClick={() => { setAdjForm({ product_id: p.id, adj_type:'set', qty: parseInt(p.stock), reason:'' }); setAdjModal(true); }}><i className="ti ti-adjustments" />Adjust</Btn>}
+                      {can(user?.role,'canDelete') && <Btn variant="danger" onClick={() => del(p.id)}><i className="ti ti-trash" />Delete</Btn>}
                     </div>
                   </td>
                 </tr>

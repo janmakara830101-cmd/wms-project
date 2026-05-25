@@ -61,8 +61,8 @@ export default function Categories() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
-                  {can(user?.role,'canEdit') && <Btn variant="edit" onClick={() => openForm(c)}><i className="ti ti-edit" /></Btn>}
-                  {can(user?.role,'canDelete') && <Btn variant="danger" onClick={() => del(c)}><i className="ti ti-trash" /></Btn>}
+                  {can(user?.role,'canEdit') && <Btn variant="edit" onClick={() => openForm(c)}><i className="ti ti-edit" />Edit</Btn>}
+                  {can(user?.role,'canDelete') && <Btn variant="danger" onClick={() => del(c)}><i className="ti ti-trash" />Delete</Btn>}
                 </div>
               </div>
             );

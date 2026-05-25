@@ -89,7 +89,7 @@ export default function Movements() {
                   <td className="px-2 py-2 border-b border-gray-50 text-gray-500">{m.supplier_name||'—'}</td>
                   <td className="px-2 py-2 border-b border-gray-50"><ShelfBadge shelf={m.shelf} /></td>
                   <td className="px-2 py-2 border-b border-gray-50 text-gray-500 max-w-[150px] truncate">{[m.ref, m.note].filter(Boolean).join(' · ')||'—'}</td>
-                  <td className="px-2 py-2 border-b border-gray-50">{can(user?.role,'canDelete') && <Btn variant="danger" onClick={() => delMov(m.id)}><i className="ti ti-trash" /></Btn>}</td>
+                  <td className="px-2 py-2 border-b border-gray-50">{can(user?.role,'canDelete') && <Btn variant="danger" onClick={() => delMov(m.id)}><i className="ti ti-trash" />Delete</Btn>}</td>
                 </tr>
               );
             })}

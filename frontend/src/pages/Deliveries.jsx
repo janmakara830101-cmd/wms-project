@@ -117,15 +117,15 @@ export default function Deliveries() {
                 <td className="px-2 py-2 border-b border-gray-50"><SigBadge sigs={ds.sigs} keys={['issuer', 'driver', 'customer']} /></td>
                 <td className="px-2 py-2 border-b border-gray-50">
                   <div className="flex gap-1 flex-wrap">
-                    <Btn variant="sm" onClick={() => setViewModal({ type: 'ds', doc: ds })}><i className="ti ti-eye" /></Btn>
-                    <Btn variant="sm" className="bg-blue-50 border-blue-200 text-blue-700" onClick={() => setSigModal({ type: 'ds', doc: ds })}><i className="ti ti-signature" /></Btn>
+                    <Btn variant="sm" onClick={() => setViewModal({ type: 'ds', doc: ds })}><i className="ti ti-eye" />View</Btn>
+                    <Btn variant="sm" className="bg-blue-50 border-blue-200 text-blue-700" onClick={() => setSigModal({ type: 'ds', doc: ds })}><i className="ti ti-signature" />Sign</Btn>
                     {can(user?.role, 'canEdit') && ds.status !== 'delivered' && (
-                      <Btn variant="sm" className={statusColor[ds.status] || ''} onClick={() => setStatus(ds.id, statusNext[ds.status])} title={statusLabel[ds.status]}>
+                      <Btn variant="sm" className={statusColor[ds.status] || ''} onClick={() => setStatus(ds.id, statusNext[ds.status])}>
                         <i className={`ti ${statusIcon[ds.status]}`} />{statusLabel[ds.status]}
                       </Btn>
                     )}
-                    {can(user?.role, 'canEdit') && ds.status === 'draft' && <Btn variant="edit" onClick={() => openEdit(ds)}><i className="ti ti-edit" /></Btn>}
-                    {can(user?.role, 'canDelete') && ds.status === 'draft' && <Btn variant="danger" onClick={() => del(ds.id)}><i className="ti ti-trash" /></Btn>}
+                    {can(user?.role, 'canEdit') && ds.status === 'draft' && <Btn variant="edit" onClick={() => openEdit(ds)}><i className="ti ti-edit" />Edit</Btn>}
+                    {can(user?.role, 'canDelete') && ds.status === 'draft' && <Btn variant="danger" onClick={() => del(ds.id)}><i className="ti ti-trash" />Delete</Btn>}
                   </div>
                 </td>
               </tr>

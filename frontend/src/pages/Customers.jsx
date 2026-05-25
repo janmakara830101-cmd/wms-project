@@ -60,8 +60,8 @@ export default function Customers() {
                   <td className="px-2 py-2 border-b border-gray-50">{c.address}</td>
                   <td className="px-2 py-2 border-b border-gray-50">
                     <div className="flex gap-1">
-                      {can(user?.role,'canEdit') && <Btn variant="edit" onClick={() => openForm(c)}><i className="ti ti-edit" /></Btn>}
-                      {can(user?.role,'canDelete') && <Btn variant="danger" onClick={() => del(c.id)}><i className="ti ti-trash" /></Btn>}
+                      {can(user?.role,'canEdit') && <Btn variant="edit" onClick={() => openForm(c)}><i className="ti ti-edit" />Edit</Btn>}
+                      {can(user?.role,'canDelete') && <Btn variant="danger" onClick={() => del(c.id)}><i className="ti ti-trash" />Delete</Btn>}
                     </div>
                   </td>
                 </tr>

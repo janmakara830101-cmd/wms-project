@@ -83,11 +83,11 @@ export default function Invoices() {
                   <td className="px-2 py-2 border-b border-gray-50"><SigBadge sigs={inv.sigs} keys={['issuer','customer']} /></td>
                   <td className="px-2 py-2 border-b border-gray-50">
                     <div className="flex gap-1 flex-wrap">
-                      <Btn variant="sm" onClick={() => setViewModal({ type:'inv', doc: inv })}><i className="ti ti-eye" /></Btn>
-                      <Btn variant="sm" className="bg-blue-50 border-blue-200 text-blue-700" onClick={() => setSigModal({ type:'inv', doc: inv })}><i className="ti ti-signature" /></Btn>
-                      <Btn variant="sm" className="bg-green-50 border-green-300 text-green-700" onClick={() => { const t2=calcTotals((inv.items||[]).filter(i=>i?.product_id),inv.overall_disc||0,inv.overall_disc_type||'pct',taxRate); const p=invPaid(inv); setPayForm({date:today(),amount:Math.max(0,t2.total-p).toFixed(2),method:'cash',ref:'',note:''}); setPayModal({inv}); }} title="Payments"><i className="ti ti-cash" /></Btn>
-                      {can(user?.role,'canEdit') && <Btn variant="edit" onClick={() => openEdit(inv)}><i className="ti ti-edit" /></Btn>}
-                      {can(user?.role,'canDelete') && <Btn variant="danger" onClick={() => del(inv.id)}><i className="ti ti-trash" /></Btn>}
+                      <Btn variant="sm" onClick={() => setViewModal({ type:'inv', doc: inv })}><i className="ti ti-eye" />View</Btn>
+                      <Btn variant="sm" className="bg-blue-50 border-blue-200 text-blue-700" onClick={() => setSigModal({ type:'inv', doc: inv })}><i className="ti ti-signature" />Sign</Btn>
+                      <Btn variant="sm" className="bg-green-50 border-green-300 text-green-700" onClick={() => { const t2=calcTotals((inv.items||[]).filter(i=>i?.product_id),inv.overall_disc||0,inv.overall_disc_type||'pct',taxRate); const p=invPaid(inv); setPayForm({date:today(),amount:Math.max(0,t2.total-p).toFixed(2),method:'cash',ref:'',note:''}); setPayModal({inv}); }}><i className="ti ti-cash" />Pay</Btn>
+                      {can(user?.role,'canEdit') && <Btn variant="edit" onClick={() => openEdit(inv)}><i className="ti ti-edit" />Edit</Btn>}
+                      {can(user?.role,'canDelete') && <Btn variant="danger" onClick={() => del(inv.id)}><i className="ti ti-trash" />Delete</Btn>}
                     </div>
                   </td>
                 </tr>

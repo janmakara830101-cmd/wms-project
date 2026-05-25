@@ -90,12 +90,12 @@ export default function Quotations() {
                   <td className="px-2 py-2 border-b border-gray-50"><SigBadge sigs={q.sigs} keys={['issuer','customer']} /></td>
                   <td className="px-2 py-2 border-b border-gray-50">
                     <div className="flex gap-1 flex-wrap">
-                      <Btn variant="sm" onClick={() => setViewModal({ type:'qt', doc: q })}><i className="ti ti-eye" /></Btn>
-                      <Btn variant="sm" className="bg-blue-50 border-blue-200 text-blue-700" onClick={() => setSigModal({ type:'qt', doc: q })}><i className="ti ti-signature" /></Btn>
-                      {can(user?.role,'canEdit') && <Btn variant="edit" onClick={() => openForm(q)}><i className="ti ti-edit" /></Btn>}
-                      {q.status === 'pending' && can(user?.role,'canEdit') && <Btn variant="green" onClick={() => approve(q.id)}><i className="ti ti-check" /></Btn>}
-                      {q.status === 'approved' && can(user?.role,'canCreate') && <Btn variant="primary" onClick={() => convert(q.id)} title="Convert to Invoice"><i className="ti ti-receipt" /></Btn>}
-                      {can(user?.role,'canDelete') && <Btn variant="danger" onClick={() => del(q.id)}><i className="ti ti-trash" /></Btn>}
+                      <Btn variant="sm" onClick={() => setViewModal({ type:'qt', doc: q })}><i className="ti ti-eye" />View</Btn>
+                      <Btn variant="sm" className="bg-blue-50 border-blue-200 text-blue-700" onClick={() => setSigModal({ type:'qt', doc: q })}><i className="ti ti-signature" />Sign</Btn>
+                      {can(user?.role,'canEdit') && <Btn variant="edit" onClick={() => openForm(q)}><i className="ti ti-edit" />Edit</Btn>}
+                      {q.status === 'pending' && can(user?.role,'canEdit') && <Btn variant="green" onClick={() => approve(q.id)}><i className="ti ti-check" />Approve</Btn>}
+                      {q.status === 'approved' && can(user?.role,'canCreate') && <Btn variant="primary" onClick={() => convert(q.id)}><i className="ti ti-receipt" />To Invoice</Btn>}
+                      {can(user?.role,'canDelete') && <Btn variant="danger" onClick={() => del(q.id)}><i className="ti ti-trash" />Delete</Btn>}
                     </div>
                   </td>
                 </tr>
