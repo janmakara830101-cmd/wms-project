@@ -23,7 +23,7 @@ export default function Quotations() {
   const [modal, setModal] = useState(null);
   const [viewModal, setViewModal] = useState(null);
   const [sigModal, setSigModal] = useState(null);
-  const [form, setForm] = useState({ date: today(), customer_id:'', items:[], overall_disc:0, overall_disc_type:'pct', notes:'' });
+  const [form, setForm] = useState({ date: today(), customer_id:'', items:[], overall_disc:0, overall_disc_type:'pct', tax_rate: taxRate, notes:'' });
 
   const load = () => {
     api.get('/quotations').then(r => setQts(r.data));
@@ -36,16 +36,17 @@ export default function Quotations() {
 
   function openForm(qt) {
     if (qt) {
-      setForm({ date: qt.date, customer_id: qt.customer_id, items: (qt.items||[]).filter(i=>i?.product_id).map(i=>({product_id:i.product_id,qty:i.qty,price:parseFloat(i.price),disc:parseFloat(i.disc||0),remark:i.remark||''})), overall_disc: parseFloat(qt.overall_disc||0), overall_disc_type: qt.overall_disc_type||'pct', notes: qt.notes||'' });
+      setForm({ date: qt.date, customer_id: qt.customer_id, items: (qt.items||[]).filter(i=>i?.product_id).map(i=>({product_id:i.product_id,qty:i.qty,price:parseFloat(i.price),disc:0,remark:i.remark||''})), overall_disc: parseFloat(qt.overall_disc||0), overall_disc_type: qt.overall_disc_type||'pct', tax_rate: parseFloat(qt.tax_rate||taxRate), notes: qt.notes||'' });
     } else {
       const p = products[0];
-      setForm({ date: today(), customer_id: customers[0]?.id||'', items: p ? [{ product_id: p.id, qty:1, price: parseFloat(p.price), disc:0, remark:'' }] : [], overall_disc:0, overall_disc_type:'pct', notes:'' });
+      setForm({ date: today(), customer_id: customers[0]?.id||'', items: p ? [{ product_id: p.id, qty:1, price: parseFloat(p.price), disc:0, remark:'' }] : [], overall_disc:0, overall_disc_type:'pct', tax_rate: taxRate, notes:'' });
     }
     setModal({ qt });
   }
 
   function setItem(i, key, val) { setForm(f => { const items = [...f.items]; items[i] = {...items[i], [key]: val}; return {...f, items}; }); }
   function addItem() { const p = products[0]; if (p) setForm(f => ({...f, items: [...f.items, { product_id: p.id, qty:1, price: parseFloat(p.price), disc:0, remark:'' }]})); }
+
   function removeItem(i) { setForm(f => ({...f, items: f.items.filter((_,j) => j!==i)})); }
 
   async function save() {
@@ -58,7 +59,7 @@ export default function Quotations() {
   async function convert(id) { await api.post(`/quotations/${id}/convert`); load(); }
   async function del(id) { if (!window.confirm(`Delete quotation ${id}?`)) return; await api.delete(`/quotations/${id}`); load(); }
 
-  const t = calcTotals(form.items, form.overall_disc, form.overall_disc_type, taxRate);
+  const t = calcTotals(form.items, form.overall_disc, form.overall_disc_type, parseFloat(form.tax_rate||taxRate));
 
 
   return (
@@ -76,7 +77,7 @@ export default function Quotations() {
           <tbody>
             {filtered.map(q => {
               const items = (q.items||[]).filter(i=>i?.product_id);
-              const t2 = calcTotals(items, q.overall_disc||0, q.overall_disc_type||'pct', taxRate);
+              const t2 = calcTotals(items, q.overall_disc||0, q.overall_disc_type||'pct', parseFloat(q.tax_rate||taxRate));
               const dt = t2.ld + t2.oda;
               return (
                 <tr key={q.id} className="hover:bg-gray-50">
@@ -113,14 +114,14 @@ export default function Quotations() {
             <F label="Date"><Input type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} /></F>
           </div>
           <table className="w-full border-collapse text-[11.5px] mb-2 border border-gray-100 rounded overflow-hidden">
-            <thead><tr className="bg-gray-50">{['Product','Qty','Price','Disc%','Sub','Remark',''].map(h=><th key={h} className="px-1.5 py-1 text-left border-b border-gray-100 text-[11px] text-gray-500 font-medium">{h}</th>)}</tr></thead>
+            <thead><tr className="bg-gray-50">{['Product','Qty','Price','Sub','Remark',''].map(h=><th key={h} className="px-1.5 py-1 text-left border-b border-gray-100 text-[11px] text-gray-500 font-medium">{h}</th>)}</tr></thead>
             <tbody>
               {form.items.map((it, i) => (
-                <tr key={i}><td className="px-1 py-0.5"><Select value={it.product_id} onChange={e=>{const p=products.find(x=>x.id==e.target.value);setItem(i,'product_id',parseInt(e.target.value));if(p)setItem(i,'price',parseFloat(p.price));}}>{products.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</Select></td>
-                  <td className="px-1 py-0.5"><input type="number" min="1" value={it.qty} onChange={e=>setItem(i,'qty',parseInt(e.target.value)||1)} className="w-12 px-1 py-0.5 border border-gray-200 rounded text-[11.5px] focus:outline-none" /></td>
-                  <td className="px-1 py-0.5"><input type="number" step="0.01" value={it.price} onChange={e=>setItem(i,'price',parseFloat(e.target.value)||0)} className="w-16 px-1 py-0.5 border border-gray-200 rounded text-[11.5px] focus:outline-none" /></td>
-                  <td className="px-1 py-0.5"><input type="number" min="0" max="100" value={it.disc} onChange={e=>setItem(i,'disc',parseFloat(e.target.value)||0)} className="w-12 px-1 py-0.5 border border-gray-200 rounded text-[11.5px] focus:outline-none" /></td>
-                  <td className="px-1 py-0.5 font-medium text-[11.5px]">{fm(it.qty*it.price*(1-(it.disc||0)/100),sym)}</td>
+                <tr key={i}>
+                  <td className="px-1 py-0.5"><Select value={it.product_id} onChange={e=>{const p=products.find(x=>x.id==e.target.value);setItem(i,'product_id',parseInt(e.target.value));if(p)setItem(i,'price',parseFloat(p.price));}}>{products.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</Select></td>
+                  <td className="px-1 py-0.5"><input type="number" min="1" value={it.qty} onChange={e=>setItem(i,'qty',parseInt(e.target.value)||1)} className="w-14 px-1 py-0.5 border border-gray-200 rounded text-[11.5px] focus:outline-none" /></td>
+                  <td className="px-1 py-0.5"><input type="number" step="0.01" value={it.price} onChange={e=>setItem(i,'price',parseFloat(e.target.value)||0)} className="w-20 px-1 py-0.5 border border-gray-200 rounded text-[11.5px] focus:outline-none" /></td>
+                  <td className="px-1 py-0.5 font-medium text-[11.5px]">{fm(it.qty*it.price,sym)}</td>
                   <td className="px-1 py-0.5"><input value={it.remark} onChange={e=>setItem(i,'remark',e.target.value)} className="w-full px-1 py-0.5 border border-gray-200 rounded text-[11.5px] focus:outline-none" placeholder="…"/></td>
                   <td className="px-1 py-0.5"><button type="button" onClick={()=>removeItem(i)} className="text-red-400 hover:text-red-600"><i className="ti ti-x text-xs"/></button></td>
                 </tr>
@@ -137,10 +138,17 @@ export default function Quotations() {
             </div>
           </div>
           <div className="bg-gray-50 rounded-md p-3 mb-3 text-[12.5px]">
-            {t.ld>0&&<div className="flex justify-between text-red-600 py-0.5"><span>Line discounts</span><span>− {fm(t.ld,sym)}</span></div>}
-            {t.oda>0&&<div className="flex justify-between text-red-600 py-0.5"><span>Order discount</span><span>− {fm(t.oda,sym)}</span></div>}
+            <div className="flex justify-between text-gray-500 py-0.5"><span>Subtotal</span><span>{fm(t.sub,sym)}</span></div>
+            {t.oda>0&&<div className="flex justify-between text-red-600 py-0.5"><span>Discount</span><span>− {fm(t.oda,sym)}</span></div>}
             <div className="flex justify-between text-gray-500 py-0.5"><span>After discount</span><span>{fm(t.ad,sym)}</span></div>
-            <div className="flex justify-between text-gray-500 py-0.5"><span>{settings?.tax_label||'Tax'} ({taxRate}%)</span><span>{fm(t.tax,sym)}</span></div>
+            <div className="flex justify-between text-gray-500 py-0.5 items-center">
+              <div className="flex items-center gap-1.5">
+                <span>{settings?.tax_label||'Tax'}</span>
+                <input type="number" min="0" max="100" step="0.5" value={form.tax_rate} onChange={e=>setForm(f=>({...f,tax_rate:parseFloat(e.target.value)||0}))} className="w-14 px-1.5 py-0.5 border border-gray-200 rounded text-[11.5px] focus:outline-none focus:border-[#1D9E75]" />
+                <span>%</span>
+              </div>
+              <span>{fm(t.tax,sym)}</span>
+            </div>
             <div className="flex justify-between font-medium border-t border-gray-200 mt-1 pt-1.5 text-[13.5px]"><span>Total</span><span>{fm(t.total,sym)}</span></div>
           </div>
           <div className="mb-3"><F label="Notes"><Input value={form.notes} onChange={e=>setForm(f=>({...f,notes:e.target.value}))} /></F></div>

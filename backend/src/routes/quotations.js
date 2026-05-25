@@ -4,7 +4,7 @@ const { auth, requirePerm } = require('../middleware/auth');
 
 router.get('/', auth, async (req, res) => {
   const { rows: qts } = await pool.query(`
-    SELECT q.*, c.name as customer_name,
+    SELECT q.*, c.name as customer_name, COALESCE(q.tax_rate, 10) as tax_rate,
       json_agg(json_build_object('id',qi.id,'product_id',qi.product_id,'qty',qi.qty,'price',qi.price,'disc',qi.disc,'remark',qi.remark,'product_name',p.name) ORDER BY qi.id) as items,
       json_build_object('issuer', sig_i.signature_data, 'issuer_date', sig_i.signed_at, 'customer', sig_c.signature_data, 'customer_date', sig_c.signed_at) as sigs
     FROM quotations q
@@ -20,16 +20,16 @@ router.get('/', auth, async (req, res) => {
 });
 
 router.post('/', auth, requirePerm('canCreate'), async (req, res) => {
-  const { date, customer_id, items, overall_disc, overall_disc_type, notes } = req.body;
+  const { date, customer_id, items, overall_disc, overall_disc_type, tax_rate, notes } = req.body;
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     const seqRow = await client.query(`SELECT nextval('quotation_seq') as n`);
     const id = `QT-${String(seqRow.rows[0].n).padStart(3,'0')}`;
     await client.query(
-      `INSERT INTO quotations (id,date,customer_id,status,overall_disc,overall_disc_type,notes,created_by)
-       VALUES ($1,$2,$3,'pending',$4,$5,$6,$7)`,
-      [id, date, customer_id, overall_disc||0, overall_disc_type||'pct', notes||'', req.user.id]
+      `INSERT INTO quotations (id,date,customer_id,status,overall_disc,overall_disc_type,tax_rate,notes,created_by)
+       VALUES ($1,$2,$3,'pending',$4,$5,$6,$7,$8)`,
+      [id, date, customer_id, overall_disc||0, overall_disc_type||'pct', tax_rate||10, notes||'', req.user.id]
     );
     for (const it of items) {
       await client.query(
@@ -46,13 +46,13 @@ router.post('/', auth, requirePerm('canCreate'), async (req, res) => {
 });
 
 router.put('/:id', auth, requirePerm('canEdit'), async (req, res) => {
-  const { date, customer_id, items, overall_disc, overall_disc_type, notes } = req.body;
+  const { date, customer_id, items, overall_disc, overall_disc_type, tax_rate, notes } = req.body;
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     await client.query(
-      `UPDATE quotations SET date=$1,customer_id=$2,overall_disc=$3,overall_disc_type=$4,notes=$5 WHERE id=$6`,
-      [date, customer_id, overall_disc||0, overall_disc_type||'pct', notes||'', req.params.id]
+      `UPDATE quotations SET date=$1,customer_id=$2,overall_disc=$3,overall_disc_type=$4,tax_rate=$5,notes=$6 WHERE id=$7`,
+      [date, customer_id, overall_disc||0, overall_disc_type||'pct', tax_rate||10, notes||'', req.params.id]
     );
     await client.query('DELETE FROM quotation_items WHERE quotation_id=$1', [req.params.id]);
     for (const it of items) {
@@ -89,9 +89,9 @@ router.post('/:id/convert', auth, requirePerm('canCreate'), async (req, res) => 
     const invId = `INV-${String(seqRow.rows[0].n).padStart(3,'0')}`;
     const today = new Date().toISOString().split('T')[0];
     await client.query(
-      `INSERT INTO invoices (id,date,quotation_id,customer_id,status,overall_disc,overall_disc_type,notes,created_by)
-       VALUES ($1,$2,$3,$4,'unpaid',$5,$6,$7,$8)`,
-      [invId, today, q.id, q.customer_id, q.overall_disc||0, q.overall_disc_type||'pct', q.notes||'', req.user.id]
+      `INSERT INTO invoices (id,date,quotation_id,customer_id,status,overall_disc,overall_disc_type,tax_rate,notes,created_by)
+       VALUES ($1,$2,$3,$4,'unpaid',$5,$6,$7,$8,$9)`,
+      [invId, today, q.id, q.customer_id, q.overall_disc||0, q.overall_disc_type||'pct', q.tax_rate||10, q.notes||'', req.user.id]
     );
     for (const it of q.items) {
       await client.query(

@@ -182,10 +182,17 @@ CREATE SEQUENCE IF NOT EXISTS invoice_seq START 1;
 CREATE SEQUENCE IF NOT EXISTS delivery_seq START 1;
 `;
 
+// Add new columns to existing tables (safe to run multiple times)
+const alterSql = `
+ALTER TABLE quotations ADD COLUMN IF NOT EXISTS tax_rate NUMERIC(5,2) DEFAULT 10;
+ALTER TABLE invoices  ADD COLUMN IF NOT EXISTS tax_rate NUMERIC(5,2) DEFAULT 10;
+`;
+
 async function migrate() {
   const client = await pool.connect();
   try {
     await client.query(sql);
+    await client.query(alterSql);
     console.log('Migration complete.');
   } catch (err) {
     console.error('Migration error:', err);
