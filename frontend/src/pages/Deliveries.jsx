@@ -111,9 +111,9 @@ export default function Deliveries() {
           <tbody>
             {[...filtered].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map((ds, idx) => (
               <tr key={ds.id} className="hover:bg-gray-50">
-                <td className="px-2 py-2 border-b border-gray-50 text-gray-400 text-[11.5px]">{idx+1}</td>
+                <td className="px-2 py-2 border-b border-gray-50 text-gray-400 text-[11.5px] font-mono">{String(idx+1).padStart(4,'0')}</td>
                 <td className="px-2 py-2 border-b border-gray-50 font-medium">{ds.id}</td>
-                <td className="px-2 py-2 border-b border-gray-50">{ds.date}</td>
+                <td className="px-2 py-2 border-b border-gray-50">{(ds.date||'').slice(0,10)}</td>
                 <td className="px-2 py-2 border-b border-gray-50 text-[#1D9E75]">{ds.invoice_id}</td>
                 <td className="px-2 py-2 border-b border-gray-50">{ds.customer_name}</td>
                 <td className="px-2 py-2 border-b border-gray-50 text-gray-500">{(ds.items || []).length} item(s)</td>

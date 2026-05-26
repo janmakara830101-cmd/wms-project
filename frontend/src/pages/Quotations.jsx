@@ -83,9 +83,9 @@ export default function Quotations() {
               const dt = t2.ld + t2.oda;
               return (
                 <tr key={q.id} className="hover:bg-gray-50">
-                  <td className="px-2 py-2 border-b border-gray-50 text-gray-400 text-[11.5px]">{idx+1}</td>
+                  <td className="px-2 py-2 border-b border-gray-50 text-gray-400 text-[11.5px] font-mono">{String(idx+1).padStart(4,'0')}</td>
                   <td className="px-2 py-2 border-b border-gray-50 font-medium">{q.id}</td>
-                  <td className="px-2 py-2 border-b border-gray-50">{q.date}</td>
+                  <td className="px-2 py-2 border-b border-gray-50">{(q.date||'').slice(0,10)}</td>
                   <td className="px-2 py-2 border-b border-gray-50">{q.customer_name}</td>
                   <td className="px-2 py-2 border-b border-gray-50">{fm(t2.sub, sym)}</td>
                   <td className="px-2 py-2 border-b border-gray-50 text-red-600">{dt > 0 ? `-${fm(dt, sym)}` : '—'}</td>

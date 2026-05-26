@@ -126,7 +126,7 @@ export default function Products() {
             <tbody>
               {list.map((p, idx) => (
                 <tr key={p.id} className="hover:bg-gray-50">
-                  <td className="px-2 py-2 border-b border-gray-50 text-gray-400 text-[11.5px]">{idx+1}</td>
+                  <td className="px-2 py-2 border-b border-gray-50 text-gray-400 text-[11.5px] font-mono">{String(idx+1).padStart(4,'0')}</td>
                   <td className="px-2 py-2 border-b border-gray-50 text-gray-400">{p.sku}</td>
                   <td className="px-2 py-2 border-b border-gray-50"><div className="font-medium">{p.name}</div>{p.name_kh && <div className="text-[10px] text-gray-400">{p.name_kh}</div>}</td>
                   <td className="px-2 py-2 border-b border-gray-50"><CatBadge category={p} /></td>

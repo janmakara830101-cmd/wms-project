@@ -74,12 +74,13 @@ export default function Movements() {
       </div>
       <div className="px-5 py-4">
         <div className="overflow-x-auto"><table className="w-full text-[12.5px] border-collapse">
-          <thead><tr>{['Type','Product','Category','Qty','Date','Supplier','Shelf','Ref/Note',''].map(h=><th key={h} className="text-left px-2 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100 whitespace-nowrap">{h}</th>)}</tr></thead>
+          <thead><tr>{['No.','Type','Product','Category','Qty','Date','Supplier','Shelf','Ref/Note',''].map(h=><th key={h} className="text-left px-2 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100 whitespace-nowrap">{h}</th>)}</tr></thead>
           <tbody>
-            {list.map(m => {
+            {list.map((m, idx) => {
               const isAdj = m.adj_type === 'adj';
               return (
                 <tr key={m.id} className="hover:bg-gray-50">
+                  <td className="px-2 py-2 border-b border-gray-50 text-gray-400 text-[11.5px] font-mono">{String(idx+1).padStart(4,'0')}</td>
                   <td className="px-2 py-2 border-b border-gray-50">
                     {isAdj ? <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10.5px] font-medium">ADJ</span>
                       : m.type === 'in' ? <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-[10.5px] font-medium">IN</span>
@@ -88,7 +89,7 @@ export default function Movements() {
                   <td className="px-2 py-2 border-b border-gray-50 font-medium">{m.product_name}</td>
                   <td className="px-2 py-2 border-b border-gray-50"><CatBadge category={m} /></td>
                   <td className={`px-2 py-2 border-b border-gray-50 font-medium ${m.type==='in'?'text-blue-700':isAdj?'text-amber-700':'text-red-700'}`}>{m.type==='in'?'+':'-'}{m.qty}</td>
-                  <td className="px-2 py-2 border-b border-gray-50">{m.date}</td>
+                  <td className="px-2 py-2 border-b border-gray-50">{(m.date||'').slice(0,10)}</td>
                   <td className="px-2 py-2 border-b border-gray-50 text-gray-500">{m.supplier_name||'—'}</td>
                   <td className="px-2 py-2 border-b border-gray-50"><ShelfBadge shelf={m.shelf} /></td>
                   <td className="px-2 py-2 border-b border-gray-50 text-gray-500 max-w-[150px] truncate">{[m.ref, m.note].filter(Boolean).join(' · ')||'—'}</td>

@@ -54,10 +54,11 @@ export default function Customers() {
         </div>
         {filtered.length === 0 ? <div className="text-center py-10 text-gray-400"><i className="ti ti-users text-3xl block mb-2 opacity-40" />No customers found</div> : (
           <div className="overflow-x-auto"><table className="w-full text-[12.5px] border-collapse">
-            <thead><tr>{['Name','Phone','Email','Address','Actions'].map(h=><th key={h} className="text-left px-2 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100">{h}</th>)}</tr></thead>
+            <thead><tr>{['No.','Name','Phone','Email','Address','Actions'].map(h=><th key={h} className="text-left px-2 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100">{h}</th>)}</tr></thead>
             <tbody>
-              {filtered.map(c => (
+              {filtered.map((c, idx) => (
                 <tr key={c.id} className="hover:bg-gray-50">
+                  <td className="px-2 py-2 border-b border-gray-50 text-gray-400 text-[11.5px] font-mono">{String(idx+1).padStart(4,'0')}</td>
                   <td className="px-2 py-2 border-b border-gray-50 font-medium">{c.name}</td>
                   <td className="px-2 py-2 border-b border-gray-50">{c.phone}</td>
                   <td className="px-2 py-2 border-b border-gray-50">{c.email}</td>

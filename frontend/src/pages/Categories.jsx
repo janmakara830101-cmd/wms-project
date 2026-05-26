@@ -59,7 +59,7 @@ export default function Categories() {
                     <div className="w-9 h-9 rounded-md flex items-center justify-center text-[17px] flex-shrink-0" style={{ background: c.color, color: c.text_color }}>
                       <i className={`ti ${c.icon}`} />
                     </div>
-                    <span className="absolute -top-1.5 -left-1.5 w-4 h-4 rounded-full bg-gray-200 text-gray-600 text-[9px] font-bold flex items-center justify-center leading-none">{idx+1}</span>
+                    <span className="absolute -top-1.5 -left-2 h-4 min-w-[1.4rem] px-0.5 rounded bg-gray-200 text-gray-600 text-[8px] font-bold font-mono flex items-center justify-center leading-none">{String(idx+1).padStart(4,'0')}</span>
                   </div>
                   <div>
                     <div className="text-[13px] font-medium">{c.name}</div>

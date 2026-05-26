@@ -54,7 +54,7 @@ export default function Reports() {
             <thead><tr>{['No.','SKU','Name','Category','Price','Stock','Unit','Low Stock At','Status'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
             <tbody>{data.map((r,i) => (
               <tr key={i} className="hover:bg-gray-50">
-                <Td className="text-gray-400">{i+1}</Td>
+                <Td className="text-gray-400 font-mono">{String(i+1).padStart(4,'0')}</Td>
                 <Td>{r.sku}</Td><Td bold>{r.name}</Td><Td>{r.category_name}</Td>
                 <Td>{fm(r.price,sym)}</Td>
                 <Td className={parseInt(r.stock)<=parseInt(r.low_stock_at)?'text-red-600 font-medium':''}>{r.stock}</Td>
@@ -72,8 +72,8 @@ export default function Reports() {
             <thead><tr>{['No.','Date','Product','Category','Qty','Supplier','Shelf','Ref','Note'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
             <tbody>{data.map((r,i) => (
               <tr key={i} className="hover:bg-gray-50">
-                <Td className="text-gray-400">{i+1}</Td>
-                <Td>{r.date}</Td><Td bold>{r.product_name}</Td><Td>{r.category_name}</Td>
+                <Td className="text-gray-400 font-mono">{String(i+1).padStart(4,'0')}</Td>
+                <Td>{(r.date||'').slice(0,10)}</Td><Td bold>{r.product_name}</Td><Td>{r.category_name}</Td>
                 <Td className={tab==='stock-in'?'text-blue-700':'text-red-700'}>{tab==='stock-in'?'+':'-'}{r.qty}</Td>
                 <Td>{r.supplier_name||'—'}</Td><Td>{r.shelf||'—'}</Td><Td>{r.ref||'—'}</Td><Td>{r.note||'—'}</Td>
               </tr>
@@ -87,7 +87,7 @@ export default function Reports() {
             <thead><tr>{['No.','Product','Category','Total Sold','Revenue'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
             <tbody>{data.map((r,i) => (
               <tr key={i} className="hover:bg-gray-50">
-                <Td><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold">{i+1}</span></Td>
+                <Td className="text-gray-400 font-mono">{String(i+1).padStart(4,'0')}</Td>
                 <Td bold>{r.name}</Td><Td>{r.category_name}</Td>
                 <Td className="text-blue-700 font-medium">{r.total_sold}</Td>
                 <Td className="text-green-700 font-medium">{fm(r.revenue,sym)}</Td>
@@ -102,7 +102,7 @@ export default function Reports() {
             <thead><tr>{['No.','Product','Category','Current Stock','Low Stock At','Unit','Needed'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
             <tbody>{data.map((r,i) => (
               <tr key={i} className="hover:bg-gray-50">
-                <Td className="text-gray-400">{i+1}</Td>
+                <Td className="text-gray-400 font-mono">{String(i+1).padStart(4,'0')}</Td>
                 <Td bold>{r.name}</Td><Td>{r.category_name}</Td>
                 <Td className="text-red-600 font-medium">{r.stock}</Td>
                 <Td>{r.low_stock_at}</Td><Td>{r.unit}</Td>
@@ -118,8 +118,8 @@ export default function Reports() {
             <thead><tr>{['No.','ID','Date','Customer','Gross','Disc','Total','Status'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
             <tbody>{data.map((r,i) => (
               <tr key={i} className="hover:bg-gray-50">
-                <Td className="text-gray-400">{i+1}</Td>
-                <Td bold>{r.id}</Td><Td>{r.date}</Td><Td>{r.customer_name}</Td>
+                <Td className="text-gray-400 font-mono">{String(i+1).padStart(4,'0')}</Td>
+                <Td bold>{r.id}</Td><Td>{(r.date||'').slice(0,10)}</Td><Td>{r.customer_name}</Td>
                 <Td>{fm(r.sub,sym)}</Td>
                 <Td className="text-red-600">{parseFloat(r.disc||0)>0?`-${fm(r.disc,sym)}`:'—'}</Td>
                 <Td bold>{fm(r.total,sym)}</Td>
@@ -138,8 +138,8 @@ export default function Reports() {
                 const bal = Math.max(0, parseFloat(r.total||0) - parseFloat(r.paid||0));
                 return (
                   <tr key={i} className="hover:bg-gray-50">
-                    <Td className="text-gray-400">{i+1}</Td>
-                    <Td bold>{r.id}</Td><Td>{r.date}</Td><Td>{r.customer_name}</Td>
+                    <Td className="text-gray-400 font-mono">{String(i+1).padStart(4,'0')}</Td>
+                    <Td bold>{r.id}</Td><Td>{(r.date||'').slice(0,10)}</Td><Td>{r.customer_name}</Td>
                     <Td bold>{fm(r.total,sym)}</Td>
                     <Td className="text-green-700">{fm(r.paid,sym)}</Td>
                     <Td className={bal>0?'text-red-600':'text-green-700'}>{fm(bal,sym)}</Td>
@@ -166,7 +166,7 @@ export default function Reports() {
             <thead><tr>{['No.','Customer','Phone','Email','Total Orders','Total Spent'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
             <tbody>{data.map((r,i) => (
               <tr key={i} className="hover:bg-gray-50">
-                <Td className="text-gray-400">{i+1}</Td>
+                <Td className="text-gray-400 font-mono">{String(i+1).padStart(4,'0')}</Td>
                 <Td bold>{r.name}</Td><Td>{r.phone||'—'}</Td><Td>{r.email||'—'}</Td>
                 <Td>{r.total_orders}</Td>
                 <Td className="text-green-700 font-medium">{fm(r.total_spent,sym)}</Td>
@@ -181,7 +181,7 @@ export default function Reports() {
             <thead><tr>{['No.','Supplier','Contact','Phone','Email','Total Deliveries','Products'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
             <tbody>{data.map((r,i) => (
               <tr key={i} className="hover:bg-gray-50">
-                <Td className="text-gray-400">{i+1}</Td>
+                <Td className="text-gray-400 font-mono">{String(i+1).padStart(4,'0')}</Td>
                 <Td bold>{r.name}</Td><Td>{r.contact||'—'}</Td><Td>{r.phone||'—'}</Td><Td>{r.email||'—'}</Td>
                 <Td>{r.total_deliveries}</Td>
                 <Td className="text-gray-500 max-w-[200px] truncate">{r.products||'—'}</Td>

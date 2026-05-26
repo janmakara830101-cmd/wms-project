@@ -92,7 +92,7 @@ export default function Users() {
           <tbody>
             {filtered.map((u, idx) => (
               <tr key={u.id} className={`hover:bg-gray-50 ${u.id === me?.id ? 'bg-green-50/30' : ''}`}>
-                <td className="px-2 py-2 border-b border-gray-50 text-gray-400 text-[11.5px]">{idx+1}</td>
+                <td className="px-2 py-2 border-b border-gray-50 text-gray-400 text-[11.5px] font-mono">{String(idx+1).padStart(4,'0')}</td>
                 <td className="px-2 py-2 border-b border-gray-50 font-medium flex items-center gap-1.5">
                   <div className="w-6 h-6 rounded-full bg-[#1D9E75] text-white text-[10px] flex items-center justify-center font-bold">{(u.display_name||u.username).charAt(0).toUpperCase()}</div>
                   {u.username}
