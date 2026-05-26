@@ -24,25 +24,33 @@ export default function DocViewer({ type, doc, co, onClose, onSign }) {
 
   const docLabel = type === 'qt' ? 'Quotation' : type === 'inv' ? 'Invoice' : 'DeliverySlip';
 
-  /* ── Print ── */
+  /* ── Print (loads Tailwind so output matches the on-screen form exactly) ── */
   function printDoc() {
     const content = document.getElementById('doc-content').innerHTML;
-    const w = window.open('', '_blank', 'width=900,height=800');
+    const docTitle = `${docLabel}_${doc.id}`;
+    const w = window.open('', '_blank', 'width=920,height=820');
     w.document.write(`<!DOCTYPE html><html><head>
-      <meta charset="utf-8">
-      <title>${doc.id}</title>
-      <link href="https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap" rel="stylesheet">
-      <style>
-        body{margin:15mm 18mm;font-family:Arial,sans-serif;font-size:13px;color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-        @media print{body{margin:10mm 12mm}@page{size:A4 portrait;margin:0}}
-        table{border-collapse:collapse;width:100%}
-        th,td{padding:5px 8px;text-align:left}
-      </style>
-      </head><body>${content}<script>window.onload=function(){window.focus();window.print();};<\/script></body></html>`);
+<meta charset="utf-8">
+<title>${docTitle}</title>
+<script src="https://cdn.tailwindcss.com"><\/script>
+<link href="https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body { font-family: Arial,'Hanuman',sans-serif; background:#fff; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  @media screen { body { padding:24px; max-width:820px; margin:0 auto; } }
+  @media print  { @page { size:A4 portrait; margin:12mm 14mm; } body { margin:0; padding:0; } }
+</style>
+</head><body>
+<div class="text-[13px] text-gray-800 bg-white">${content}</div>
+<script>
+window.addEventListener('load', function() {
+  setTimeout(function() { window.focus(); window.print(); }, 1200);
+});
+<\/script>
+</body></html>`);
     w.document.close();
   }
 
-  /* ── Save as PDF ── */
+  /* ── Save as PDF (captures the rendered form exactly as displayed) ── */
   async function savePdf() {
     const html2pdf = window.html2pdf;
     if (!html2pdf) { alert('PDF library not loaded. Please check your internet connection.'); return; }
@@ -51,10 +59,10 @@ export default function DocViewer({ type, doc, co, onClose, onSign }) {
     try {
       await html2pdf()
         .set({
-          margin: [8, 8, 8, 8],
+          margin: [10, 10, 10, 10],
           filename: `${docLabel}_${doc.id}.pdf`,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, logging: false },
+          image: { type: 'jpeg', quality: 0.99 },
+          html2canvas: { scale: 2, useCORS: true, logging: false, scrollX: 0, scrollY: 0 },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         })
         .from(element)
@@ -64,24 +72,54 @@ export default function DocViewer({ type, doc, co, onClose, onSign }) {
     }
   }
 
-  /* ── Excel ── */
+  /* ── Excel (formatted document layout) ── */
   function exportXls() {
+    const XLSX = window.XLSX;
+    if (!XLSX) { alert('Excel library not loaded.'); return; }
+    const coName = lang === 'kh' ? co?.name_kh : co?.name;
+    const docType = L[type === 'qt' ? 'quotation' : type === 'inv' ? 'invoice' : 'delivery'];
     const rows = [
-      [lang === 'kh' ? co?.name_kh : co?.name],
-      [co?.address],
+      [coName || ''],
+      [co?.address || ''],
+      [co?.phone || ''],
       [],
-      [`${L[type === 'qt' ? 'quotation' : type === 'inv' ? 'invoice' : 'delivery']} ${doc.id}`],
-      [`${L.date}: ${fmDate(doc.date)}`],
+      [`${docType}`, '', '', '', '', `${L.date}:`],
+      [`${doc.id}`, '', '', '', '', fmDate(doc.date)],
       [],
-      [L.product, L.qty, L.unitPrice, L.disc, L.subtotal, L.remark],
-      ...items.map(i => [pn(i), i.qty, i.price, `${i.disc || 0}%`, i.qty * i.price * (1 - (i.disc||0)/100), i.remark||'']),
+      [type === 'qt' ? L.quoteTo : type === 'inv' ? L.billTo : L.deliverTo, doc.customer_name || ''],
       [],
-      ...(t.ld > 0 ? [['', '', '', '', L.lineDiscounts, -t.ld]] : []),
-      ['', '', '', '', `${taxLabel} (${taxRate}%)`, t.tax],
-      ['', '', '', '', L.total, t.total],
-      ...(type === 'inv' && paid > 0 ? [['', '', '', '', L.amountPaid, paid], ['', '', '', '', L.balance, balance]] : []),
+      // Table header
+      ['#', L.product, L.qty, L.unitPrice, L.disc, L.subtotal, L.remark],
+      // Items
+      ...items.map((item, i) => [
+        i + 1,
+        pn(item),
+        item.qty,
+        parseFloat(item.price),
+        `${item.disc || 0}%`,
+        parseFloat((item.qty * item.price * (1 - (item.disc||0)/100)).toFixed(2)),
+        item.remark || '',
+      ]),
+      [],
+      // Totals
+      ...(t.ld > 0  ? [['', '', '', '', '', L.lineDiscounts, -parseFloat(t.ld.toFixed(2))]]  : []),
+      ...(t.oda > 0 ? [['', '', '', '', '', L.orderDiscount, -parseFloat(t.oda.toFixed(2))]] : []),
+      ['', '', '', '', '', L.afterDiscount,  parseFloat(t.ad.toFixed(2))],
+      ['', '', '', '', '', `${taxLabel} (${taxRate}%)`, parseFloat(t.tax.toFixed(2))],
+      ['', '', '', '', '', L.total,          parseFloat(t.total.toFixed(2))],
+      ...(type === 'inv' && paid > 0 ? [
+        ['', '', '', '', '', L.amountPaid, parseFloat(paid.toFixed(2))],
+        ['', '', '', '', '', L.balance,    parseFloat(balance.toFixed(2))],
+      ] : []),
+      [],
+      [doc.notes ? `${L.notes}: ${doc.notes}` : ''],
     ];
-    xlsExport(rows, `${docLabel}_${doc.id}`);
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    // Column widths
+    ws['!cols'] = [{ wch: 5 }, { wch: 28 }, { wch: 8 }, { wch: 12 }, { wch: 8 }, { wch: 14 }, { wch: 20 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, docType.substring(0, 31));
+    XLSX.writeFile(wb, `${docLabel}_${doc.id}_${fmDate(new Date().toISOString())}.xlsx`);
   }
 
   const sigs = doc.sigs || {};
