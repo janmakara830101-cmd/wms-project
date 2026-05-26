@@ -26,6 +26,29 @@ router.get('/', auth, async (req, res) => {
   res.json(rows);
 });
 
+router.get('/:id', auth, async (req, res) => {
+  const { rows } = await pool.query(`
+    SELECT d.*, c.name as customer_name,
+      json_agg(json_build_object(
+        'id', di.id, 'product_id', di.product_id, 'product_name', di.product_name,
+        'qty', di.qty, 'remark', di.note
+      ) ORDER BY di.id) FILTER (WHERE di.id IS NOT NULL) as items,
+      json_build_object(
+        'issuer',   sig_i.signature_data,  'issuer_date',   sig_i.signed_at,
+        'customer', sig_c.signature_data,  'customer_date', sig_c.signed_at
+      ) as sigs
+    FROM deliveries d
+    LEFT JOIN customers c ON d.customer_id = c.id
+    LEFT JOIN delivery_items di ON di.delivery_id = d.id
+    LEFT JOIN signatures sig_i ON sig_i.document_type='ds' AND sig_i.document_id=d.id AND sig_i.role='issuer'
+    LEFT JOIN signatures sig_c ON sig_c.document_type='ds' AND sig_c.document_id=d.id AND sig_c.role='customer'
+    WHERE d.id=$1
+    GROUP BY d.id, c.name, sig_i.signature_data, sig_i.signed_at, sig_c.signature_data, sig_c.signed_at
+  `, [req.params.id]);
+  if (!rows[0]) return res.status(404).json({ error: 'Not found' });
+  res.json(rows[0]);
+});
+
 router.post('/', auth, requirePerm('canCreate'), async (req, res) => {
   const { date, invoice_id, items, address, driver, vehicle, delivery_date, notes } = req.body;
   const client = await pool.connect();

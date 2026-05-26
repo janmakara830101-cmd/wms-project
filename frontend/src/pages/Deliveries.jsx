@@ -134,6 +134,15 @@ export default function Deliveries() {
     await api.put(`/deliveries/${id}/status`, { status }); load();
   }
 
+  async function openView(ds) {
+    try {
+      const { data } = await api.get(`/deliveries/${ds.id}`);
+      setViewModal({ type: 'ds', doc: data });
+    } catch {
+      setViewModal({ type: 'ds', doc: ds }); // fallback to cached data
+    }
+  }
+
   const statusNext  = { draft: 'dispatched', dispatched: 'delivered' };
   const statusLabel = { draft: 'Dispatch', dispatched: 'Mark Delivered' };
   const statusIcon  = { draft: 'ti-truck', dispatched: 'ti-circle-check' };
@@ -175,7 +184,7 @@ export default function Deliveries() {
                   <td className="px-2 py-2 border-b border-gray-50"><SigBadge sigs={ds.sigs} keys={['issuer', 'customer']} /></td>
                   <td className="px-2 py-2 border-b border-gray-50">
                     <div className="flex gap-1 flex-wrap">
-                      <Btn variant="sm" onClick={() => setViewModal({ type: 'ds', doc: ds })}><i className="ti ti-eye" />View</Btn>
+                      <Btn variant="sm" onClick={() => openView(ds)}><i className="ti ti-eye" />View</Btn>
                       <Btn variant="sm" className="bg-blue-50 border-blue-200 text-blue-700" onClick={() => setSigModal({ type: 'ds', doc: ds })}><i className="ti ti-signature" />Sign</Btn>
                       {can(user?.role, 'canEdit') && ds.status !== 'delivered' && (
                         <Btn variant="sm" className={statusColor[ds.status] || ''} onClick={() => setStatus(ds.id, statusNext[ds.status])}>
