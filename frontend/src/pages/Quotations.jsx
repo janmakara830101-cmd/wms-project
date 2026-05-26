@@ -71,10 +71,10 @@ export default function Quotations() {
         {can(user?.role,'canCreate') && <Btn variant="primary" onClick={() => openForm(null)}><i className="ti ti-plus" />Create Quotation</Btn>}
       </div>
       <div className="px-5 py-4">
-        <div className="flex items-center gap-2 border border-gray-200 rounded-md px-2.5 py-1.5 bg-white mb-3 w-fit">
-          <i className="ti ti-search text-gray-400" /><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search ID or customer…" className="text-[12px] focus:outline-none w-52" />{search&&<button onClick={()=>setSearch('')}><i className="ti ti-x text-gray-400 text-xs"/></button>}
+        <div className="flex items-center gap-2 border border-gray-200 rounded-md px-2.5 py-1.5 bg-white mb-3 w-full sm:w-fit">
+          <i className="ti ti-search text-gray-400" /><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search ID or customer…" className="text-[12px] focus:outline-none flex-1 sm:w-52" />{search&&<button onClick={()=>setSearch('')}><i className="ti ti-x text-gray-400 text-xs"/></button>}
         </div>
-        <table className="w-full text-[12.5px] border-collapse">
+        <div className="overflow-x-auto"><table className="w-full text-[12.5px] border-collapse">
           <thead><tr>{['ID','Date','Customer','Gross','Disc','Total','Status','Sigs','Actions'].map(h=><th key={h} className="text-left px-2 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100 whitespace-nowrap">{h}</th>)}</tr></thead>
           <tbody>
             {filtered.map(q => {
@@ -105,7 +105,7 @@ export default function Quotations() {
               );
             })}
           </tbody>
-        </table>
+        </table></div>
       </div>
 
       {modal && (

@@ -47,13 +47,13 @@ export default function Suppliers() {
         {can(user?.role,'canCreate') && <Btn variant="primary" onClick={() => openForm(null)}><i className="ti ti-plus" />Add Supplier</Btn>}
       </div>
       <div className="px-5 py-4">
-        <div className="flex items-center gap-2 border border-gray-200 rounded-md px-2.5 py-1.5 bg-white mb-3 w-fit">
+        <div className="flex items-center gap-2 border border-gray-200 rounded-md px-2.5 py-1.5 bg-white mb-3 w-full sm:w-fit">
           <i className="ti ti-search text-gray-400" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search supplier name…" className="text-[12px] focus:outline-none w-48" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search supplier name…" className="text-[12px] focus:outline-none flex-1 sm:w-48" />
           {search && <button onClick={() => setSearch('')}><i className="ti ti-x text-gray-400 text-xs" /></button>}
         </div>
         {filtered.length === 0 ? <div className="text-center py-10 text-gray-400"><i className="ti ti-truck text-3xl block mb-2 opacity-40" />No suppliers found</div> : (
-          <table className="w-full text-[12.5px] border-collapse">
+          <div className="overflow-x-auto"><table className="w-full text-[12.5px] border-collapse">
             <thead><tr>{['Supplier','Contact','Phone','Email','Products','Actions'].map(h=><th key={h} className="text-left px-2 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100">{h}</th>)}</tr></thead>
             <tbody>
               {filtered.map(s => (
@@ -72,7 +72,7 @@ export default function Suppliers() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </div>
 

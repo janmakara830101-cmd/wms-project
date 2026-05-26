@@ -97,12 +97,12 @@ export default function Deliveries() {
         {can(user?.role, 'canCreate') && <Btn variant="primary" onClick={openCreate}><i className="ti ti-plus" />Create Delivery</Btn>}
       </div>
       <div className="px-5 py-4">
-        <div className="flex items-center gap-2 border border-gray-200 rounded-md px-2.5 py-1.5 bg-white mb-3 w-fit">
+        <div className="flex items-center gap-2 border border-gray-200 rounded-md px-2.5 py-1.5 bg-white mb-3 w-full sm:w-fit">
           <i className="ti ti-search text-gray-400" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search ID, invoice or customer…" className="text-[12px] focus:outline-none w-56" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search ID, invoice or customer…" className="text-[12px] focus:outline-none flex-1 sm:w-56" />
           {search && <button onClick={() => setSearch('')}><i className="ti ti-x text-gray-400 text-xs" /></button>}
         </div>
-        <table className="w-full text-[12.5px] border-collapse">
+        <div className="overflow-x-auto"><table className="w-full text-[12.5px] border-collapse">
           <thead>
             <tr>{['DS#', 'Date', 'Invoice', 'Customer', 'Items', 'Driver', 'Status', 'Sigs', 'Actions'].map(h =>
               <th key={h} className="text-left px-2 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100 whitespace-nowrap">{h}</th>
@@ -135,7 +135,7 @@ export default function Deliveries() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
         {filtered.length === 0 && (
           <div className="text-center py-12 text-gray-400">
             <i className="ti ti-truck text-3xl block mb-2 opacity-40" />No delivery slips found

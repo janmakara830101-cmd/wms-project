@@ -74,7 +74,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div className="grid grid-cols-4 gap-2 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
           {[
             { label: 'Total products', value: products.length, color: '' },
             { label: 'Pending quotations', value: pendingQuotations, color: 'text-blue-600' },
@@ -88,7 +88,7 @@ export default function Dashboard() {
           ))}
         </div>
 
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
           <div className="bg-gray-50 rounded-md p-4">
             <div className="text-[12px] font-medium text-gray-500 mb-3">Monthly Revenue (last 6 months)</div>
             {months.map((m, i) => (
@@ -119,6 +119,7 @@ export default function Dashboard() {
           <h2 className="text-[13px] font-medium text-gray-500">Recent invoices</h2>
           <button onClick={() => navigate('/invoices')} className="text-[11.5px] border border-gray-200 px-2 py-1 rounded hover:bg-gray-50">View all</button>
         </div>
+        <div className="overflow-x-auto">
         <table className="w-full text-[12.5px] border-collapse">
           <thead>
             <tr>
@@ -147,6 +148,7 @@ export default function Dashboard() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

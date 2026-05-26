@@ -3,7 +3,7 @@ import React from 'react';
 export default function Modal({ children, onClose }) {
   return (
     <div
-      className="fixed inset-0 bg-black/40 z-50 flex items-start justify-center pt-8 overflow-y-auto pb-8"
+      className="fixed inset-0 bg-black/40 z-50 flex items-start justify-center pt-2 sm:pt-8 overflow-y-auto pb-4 sm:pb-8 px-2 sm:px-0"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="bg-white rounded-xl border border-gray-100 p-5 w-[580px] max-w-[95vw] shadow-xl">

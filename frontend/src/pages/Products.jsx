@@ -100,7 +100,7 @@ export default function Products() {
         <div className="flex gap-2 items-center mb-3 flex-wrap">
           <div className="flex items-center gap-2 border border-gray-200 rounded-md px-2.5 py-1.5 bg-white">
             <i className="ti ti-search text-gray-400" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, SKU…" className="text-[12px] focus:outline-none w-48" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, SKU…" className="text-[12px] focus:outline-none flex-1 sm:w-48" />
             {search && <button onClick={() => setSearch('')}><i className="ti ti-x text-gray-400 text-xs" /></button>}
           </div>
           {can(user?.role,'canCreate') && <Btn onClick={() => { setSiForm({ product_id: products[0]?.id||'', qty:1, date:today(), supplier_id:'', shelf:'', ref:'', note:'' }); setSiModal(true); }}><i className="ti ti-arrow-bar-to-down text-blue-600" />Stock In</Btn>}
@@ -117,7 +117,7 @@ export default function Products() {
         </div>
 
         {list.length === 0 ? <div className="text-center py-10 text-gray-400"><i className="ti ti-package text-3xl block mb-2 opacity-40" />No products found</div> : (
-          <table className="w-full text-[12.5px] border-collapse">
+          <div className="overflow-x-auto"><table className="w-full text-[12.5px] border-collapse">
             <thead><tr>
               {['SKU','Name','Category','Unit','Cost','Price','Stock Level','Shelf','Actions'].map(h => (
                 <th key={h} className="text-left px-2 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100 whitespace-nowrap">{h}</th>
@@ -145,7 +145,7 @@ export default function Products() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </div>
 

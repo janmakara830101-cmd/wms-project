@@ -73,7 +73,7 @@ export default function Movements() {
         </div>
       </div>
       <div className="px-5 py-4">
-        <table className="w-full text-[12.5px] border-collapse">
+        <div className="overflow-x-auto"><table className="w-full text-[12.5px] border-collapse">
           <thead><tr>{['Type','Product','Category','Qty','Date','Supplier','Shelf','Ref/Note',''].map(h=><th key={h} className="text-left px-2 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100 whitespace-nowrap">{h}</th>)}</tr></thead>
           <tbody>
             {list.map(m => {
@@ -97,7 +97,7 @@ export default function Movements() {
               );
             })}
           </tbody>
-        </table>
+        </table></div>
       </div>
 
       {siModal && <Modal onClose={() => setSiModal(false)}><h2 className="text-sm font-medium text-blue-700 mb-4">Stock In</h2><div className="grid grid-cols-2 gap-3 mb-3"><F label="Product"><Select value={siForm.product_id} onChange={e=>{const p=products.find(x=>x.id==e.target.value);setSiForm(f=>({...f,product_id:e.target.value,shelf:p?.shelf||''}));}}>{products.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</Select></F><F label="Date"><Input type="date" value={siForm.date} onChange={e=>setSiForm(f=>({...f,date:e.target.value}))} /></F><F label="Quantity"><Input type="number" min="1" value={siForm.qty} onChange={e=>setSiForm(f=>({...f,qty:parseInt(e.target.value)||1}))} /></F><F label="Supplier"><Select value={siForm.supplier_id} onChange={e=>setSiForm(f=>({...f,supplier_id:e.target.value}))}><option value="">—</option>{supps.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</Select></F><F label="Shelf"><Input value={siForm.shelf} onChange={e=>setSiForm(f=>({...f,shelf:e.target.value}))} /></F><F label="Ref/PO#"><Input value={siForm.ref} onChange={e=>setSiForm(f=>({...f,ref:e.target.value}))} /></F></div><F label="Note"><Input value={siForm.note} onChange={e=>setSiForm(f=>({...f,note:e.target.value}))} /></F><ModalActions><Btn onClick={()=>setSiModal(false)}>Cancel</Btn><Btn variant="primary" onClick={saveSI}>Record</Btn></ModalActions></Modal>}

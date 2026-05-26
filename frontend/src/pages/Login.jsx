@@ -23,7 +23,7 @@ export default function Login() {
 
   return (
     <div className="fixed inset-0 bg-white flex items-center justify-center">
-      <div className="bg-gray-50 border border-gray-100 rounded-xl p-8 w-80 shadow-lg">
+      <div className="bg-gray-50 border border-gray-100 rounded-xl p-6 sm:p-8 w-full max-w-xs mx-4 shadow-lg">
         <div className="text-center mb-5">
           <i className="ti ti-building-warehouse text-4xl text-[#1D9E75]" />
           <h1 className="text-xl font-semibold mt-2">WMS System</h1>

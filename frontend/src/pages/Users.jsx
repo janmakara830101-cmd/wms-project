@@ -79,13 +79,13 @@ export default function Users() {
         <Btn variant="primary" onClick={openCreate}><i className="ti ti-plus" />Add User</Btn>
       </div>
       <div className="px-5 py-4">
-        <div className="flex items-center gap-2 border border-gray-200 rounded-md px-2.5 py-1.5 bg-white mb-4 w-fit">
+        <div className="flex items-center gap-2 border border-gray-200 rounded-md px-2.5 py-1.5 bg-white mb-4 w-full sm:w-fit">
           <i className="ti ti-search text-gray-400" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search users…" className="text-[12px] focus:outline-none w-44" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search users…" className="text-[12px] focus:outline-none flex-1 sm:w-44" />
           {search && <button onClick={() => setSearch('')}><i className="ti ti-x text-gray-400 text-xs" /></button>}
         </div>
 
-        <table className="w-full text-[12.5px] border-collapse mb-8">
+        <div className="overflow-x-auto"><table className="w-full text-[12.5px] border-collapse mb-8">
           <thead><tr>{['Username', 'Display Name', 'Role', 'Actions'].map(h =>
             <th key={h} className="text-left px-2 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100">{h}</th>
           )}</tr></thead>
@@ -111,12 +111,12 @@ export default function Users() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
 
         {/* Permissions Reference */}
         <div className="mt-2">
           <div className="text-[12px] font-medium text-gray-600 mb-2">Role Permissions Reference</div>
-          <table className="text-[12px] border-collapse border border-gray-200 rounded overflow-hidden">
+          <div className="overflow-x-auto"><table className="text-[12px] border-collapse border border-gray-200 rounded overflow-hidden">
             <thead>
               <tr className="bg-gray-50">
                 <th className="px-3 py-2 text-left text-[11px] text-gray-500 font-medium border-b border-gray-200">Permission</th>
@@ -133,7 +133,7 @@ export default function Users() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       </div>
 

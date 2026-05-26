@@ -141,7 +141,7 @@ export default function Settings() {
             <div className="text-[12px] font-medium text-gray-600 border-b border-gray-100 pb-1 mb-3">Company Information</div>
             <F label="Company Name"><Input value={form.company_name} onChange={e => setForm(f => ({ ...f, company_name: e.target.value }))} disabled={!isAdmin} /></F>
             <F label="Address"><Input value={form.company_address} onChange={e => setForm(f => ({ ...f, company_address: e.target.value }))} disabled={!isAdmin} /></F>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <F label="Phone"><Input value={form.company_phone} onChange={e => setForm(f => ({ ...f, company_phone: e.target.value }))} disabled={!isAdmin} /></F>
               <F label="Email"><Input value={form.company_email} onChange={e => setForm(f => ({ ...f, company_email: e.target.value }))} disabled={!isAdmin} /></F>
             </div>
@@ -159,7 +159,7 @@ export default function Settings() {
         {tab === 'finance' && (
           <div className="space-y-4">
             <div className="text-[12px] font-medium text-gray-600 border-b border-gray-100 pb-1 mb-3">Currency & Tax</div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <F label="Currency Symbol">
                 <Select value={form.curr_symbol} onChange={e => setForm(f => ({ ...f, curr_symbol: e.target.value }))} disabled={!isAdmin}>
                   {CURRENCIES.map(c => <option key={c.sym} value={c.sym}>{c.sym} — {c.name.split('—')[1].trim()}</option>)}
@@ -173,7 +173,7 @@ export default function Settings() {
               </F>
             </div>
             <div className="text-[12px] font-medium text-gray-600 border-b border-gray-100 pb-1 mb-3 mt-4">Document Number Prefixes</div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <F label="Invoice Prefix"><Input value={form.invoice_prefix} onChange={e => setForm(f => ({ ...f, invoice_prefix: e.target.value }))} disabled={!isAdmin} /></F>
               <F label="Quotation Prefix"><Input value={form.quote_prefix} onChange={e => setForm(f => ({ ...f, quote_prefix: e.target.value }))} disabled={!isAdmin} /></F>
               <F label="Delivery Prefix"><Input value={form.delivery_prefix} onChange={e => setForm(f => ({ ...f, delivery_prefix: e.target.value }))} disabled={!isAdmin} /></F>
