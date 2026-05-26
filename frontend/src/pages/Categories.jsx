@@ -58,7 +58,7 @@ export default function Categories() {
             <table className="w-full text-[12.5px] border-collapse">
               <thead>
                 <tr>
-                  {['No.', 'Icon', 'Name (English)', 'ឈ្មោះ (ខ្មែរ)', 'Products', 'Actions'].map(h => (
+                  {['No.', 'Icon', 'Category Name', 'Products', 'Actions'].map(h => (
                     <th key={h} className="text-left px-3 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100 whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -79,10 +79,11 @@ export default function Categories() {
                           <i className={`ti ${c.icon}`} />
                         </div>
                       </td>
-                      {/* Name EN */}
-                      <td className="px-3 py-2.5 border-b border-gray-50 font-medium">{c.name}</td>
-                      {/* Name KH */}
-                      <td className="px-3 py-2.5 border-b border-gray-50 text-gray-500">{c.name_kh || '—'}</td>
+                      {/* Category Name (EN + KH stacked) */}
+                      <td className="px-3 py-2.5 border-b border-gray-50">
+                        <div className="font-medium">{c.name}</div>
+                        {c.name_kh && <div className="text-[11px] text-gray-400 mt-0.5">{c.name_kh}</div>}
+                      </td>
                       {/* Products count */}
                       <td className="px-3 py-2.5 border-b border-gray-50">
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium"
