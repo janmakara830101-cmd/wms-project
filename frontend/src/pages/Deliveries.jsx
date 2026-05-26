@@ -34,8 +34,18 @@ export default function Deliveries() {
     ? dels.filter(d => d.id?.toLowerCase().includes(search.toLowerCase()) || d.customer_name?.toLowerCase().includes(search.toLowerCase()) || d.invoice_id?.toLowerCase().includes(search.toLowerCase()))
     : dels;
 
+  // Invoice IDs that are fully delivered — exclude from "Create" dropdown
+  const fullyDeliveredIds = new Set(dels.filter(d => d.status === 'delivered').map(d => d.invoice_id));
+  // Invoice IDs with an in-progress delivery (draft or dispatched) — show as [Partial]
+  const partialIds        = new Set(dels.filter(d => d.status !== 'delivered').map(d => d.invoice_id));
+  // Only show invoices not yet fully delivered
+  const availableInvoices = invoices.filter(inv => !fullyDeliveredIds.has(inv.id));
+
   function openCreate() {
-    setForm({ invoice_id: invoices[0]?.id || '', date: today(), delivery_date: '', address: '', notes: '', items: [] });
+    const first = availableInvoices[0];
+    const items = first ? (first.items || []).filter(i => i?.product_id).map(i => ({ product_id: i.product_id, product_name: i.product_name, qty: i.qty, note: '' })) : [];
+    const addr  = first ? (first.customer_name || '') : '';
+    setForm({ invoice_id: first?.id || '', date: today(), delivery_date: '', address: addr, notes: '', items });
     setModal({ ds: null });
   }
 
@@ -149,9 +159,19 @@ export default function Deliveries() {
           <h2 className="text-sm font-medium mb-4">{modal.ds?.id ? `Edit Delivery ${modal.ds.id}` : 'Create Delivery Slip'}</h2>
           <div className="grid grid-cols-2 gap-3 mb-3">
             <F label="Invoice">
-              <Select value={form.invoice_id} onChange={e => onInvoiceChange(e.target.value)} disabled={!!modal.ds?.id}>
-                {invoices.map(inv => <option key={inv.id} value={inv.id}>{inv.id} — {inv.customer_name}</option>)}
-              </Select>
+              {!modal.ds?.id && availableInvoices.length === 0 ? (
+                <div className="w-full px-2 py-1.5 border border-gray-200 rounded text-[12px] text-gray-400 bg-gray-50">
+                  All invoices have been delivered
+                </div>
+              ) : (
+                <Select value={form.invoice_id} onChange={e => onInvoiceChange(e.target.value)} disabled={!!modal.ds?.id}>
+                  {(modal.ds?.id ? invoices : availableInvoices).map(inv => (
+                    <option key={inv.id} value={inv.id}>
+                      {inv.id} — {inv.customer_name}{partialIds.has(inv.id) && !modal.ds?.id ? ' [Partial]' : ''}
+                    </option>
+                  ))}
+                </Select>
+              )}
             </F>
             <F label="Date"><Input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} /></F>
             <F label="Expected Delivery Date"><Input type="date" value={form.delivery_date} onChange={e => setForm(f => ({ ...f, delivery_date: e.target.value }))} /></F>
@@ -188,7 +208,11 @@ export default function Deliveries() {
           <div className="mb-3"><F label="Notes"><Input value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} /></F></div>
           <ModalActions>
             <Btn onClick={() => setModal(null)}>Cancel</Btn>
-            <Btn variant="primary" onClick={save}>{modal.ds?.id ? 'Update' : 'Create'}</Btn>
+            <Btn variant="primary" onClick={save}
+              disabled={!modal.ds?.id && availableInvoices.length === 0}
+              style={!modal.ds?.id && availableInvoices.length === 0 ? { opacity: 0.4, cursor: 'not-allowed' } : {}}>
+              {modal.ds?.id ? 'Update' : 'Create'}
+            </Btn>
           </ModalActions>
         </Modal>
       )}
