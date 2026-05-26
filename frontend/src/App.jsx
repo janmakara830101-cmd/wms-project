@@ -35,16 +35,16 @@ function Layout() {
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Mobile top bar */}
-        <div className="md:hidden flex items-center gap-3 px-4 py-3 border-b border-gray-100 bg-white shrink-0">
+        <div className="md:hidden flex items-center gap-3 px-3 py-2.5 border-b border-gray-100 bg-white shrink-0 shadow-sm">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="text-gray-600 p-0.5"
+            className="flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 text-gray-700 active:bg-gray-200"
           >
-            <i className="ti ti-menu-2 text-xl" />
+            <i className="ti ti-menu-2 text-lg" />
           </button>
-          <div className="text-sm font-semibold text-[#1D9E75] flex items-center gap-1.5">
+          <div className="text-sm font-semibold text-[#1D9E75] flex items-center gap-1.5 flex-1">
             <i className="ti ti-building-warehouse" />
-            {settings?.company_name?.split(' ').slice(0, 2).join(' ') || 'WMS'}
+            {settings?.company_name?.split(' ').slice(0, 3).join(' ') || 'WMS'}
           </div>
         </div>
 
