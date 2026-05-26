@@ -220,7 +220,7 @@ window.addEventListener('load', function() {
                   <td className="px-2 py-1.5 border-b border-gray-100 text-right">{fm(item.price, sym)}</td>
                   <td className="px-2 py-1.5 border-b border-gray-100 text-right">{item.disc||0}%</td>
                   <td className="px-2 py-1.5 border-b border-gray-100 text-right font-medium">{fm(item.qty*item.price*(1-(item.disc||0)/100), sym)}</td>
-                  <td className="px-2 py-1.5 border-b border-gray-100 text-gray-500">{item.remark||''}</td>
+                  <td className="px-2 py-1.5 border-b border-gray-100 text-gray-500">{item.remark || item.note || ''}</td>
                 </tr>
               ))}
             </tbody>
@@ -243,7 +243,7 @@ window.addEventListener('load', function() {
                   <td className="px-2 py-1.5 border-b border-gray-100 font-medium">{pn(item)}</td>
                   <td className="px-2 py-1.5 border-b border-gray-100 text-right">{item.qty}</td>
                   <td className="px-2 py-1.5 border-b border-gray-100 text-gray-500">{item.unit}</td>
-                  <td className="px-2 py-1.5 border-b border-gray-100 text-gray-500">{item.remark||''}</td>
+                  <td className="px-2 py-1.5 border-b border-gray-100 text-gray-500">{item.remark || item.note || ''}</td>
                 </tr>
               ))}
             </tbody>

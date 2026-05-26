@@ -53,9 +53,33 @@ export default function Deliveries() {
     dels.filter(d => d.status === 'delivered').map(d => d.invoice_id)
   );
 
+  /* Helper: sum qty already delivered (status='delivered') per product for an invoice */
+  function deliveredQtysFor(invId) {
+    const qtys = {};
+    dels.filter(d => d.invoice_id === invId && d.status === 'delivered')
+        .forEach(d => (d.items || []).forEach(it => {
+          qtys[it.product_id] = (qtys[it.product_id] || 0) + Number(it.qty || 0);
+        }));
+    return qtys;
+  }
+
+  /* Build remaining items for an invoice (deduct already delivered qty) */
+  function remainingItems(inv) {
+    const dq = deliveredQtysFor(inv.id);
+    return (inv.items || [])
+      .filter(i => i?.product_id)
+      .map(i => ({
+        product_id: i.product_id,
+        product_name: i.product_name,
+        qty: Math.max(0, Number(i.qty || 0) - (dq[i.product_id] || 0)),
+        remark: '',
+      }))
+      .filter(i => i.qty > 0); // skip fully-delivered items
+  }
+
   function openCreate() {
     const first = availableInvoices[0];
-    const items = first ? (first.items || []).filter(i => i?.product_id).map(i => ({ product_id: i.product_id, product_name: i.product_name, qty: i.qty, note: '' })) : [];
+    const items = first ? remainingItems(first) : [];
     const addr  = first ? (first.customer_name || '') : '';
     setForm({ invoice_id: first?.id || '', date: today(), delivery_date: '', address: addr, notes: '', items });
     setModal({ ds: null });
@@ -68,15 +92,15 @@ export default function Deliveries() {
       delivery_date: ds.delivery_date || '',
       address: ds.address || '',
       notes: ds.notes || '',
-      items: (ds.items || []).map(i => ({ product_id: i.product_id, product_name: i.product_name, qty: i.qty, note: i.note || '' }))
+      items: (ds.items || []).map(i => ({ product_id: i.product_id, product_name: i.product_name, qty: i.qty, remark: i.remark || i.note || '' }))
     });
     setModal({ ds });
   }
 
   function onInvoiceChange(invId) {
     const inv = invoices.find(i => i.id === invId);
-    const items = inv ? (inv.items || []).filter(i => i?.product_id).map(i => ({ product_id: i.product_id, product_name: i.product_name, qty: i.qty, note: '' })) : [];
-    const addr = inv ? (inv.customer_name || '') : '';
+    const items = inv ? remainingItems(inv) : [];
+    const addr  = inv ? (inv.customer_name || '') : '';
     setForm(f => ({ ...f, invoice_id: invId, items, address: addr }));
   }
 
@@ -86,8 +110,18 @@ export default function Deliveries() {
   function removeItem(i) { setForm(f => ({ ...f, items: f.items.filter((_, j) => j !== i) })); }
 
   async function save() {
-    if (modal.ds?.id) await api.put(`/deliveries/${modal.ds.id}`, form);
-    else await api.post('/deliveries', form);
+    const its = form.items;
+    if (its.length === 0) { alert('No items to deliver.'); return; }
+    if (its.length === 1 && Number(its[0].qty || 0) < 1) {
+      alert('Quantity must be at least 1.'); return;
+    }
+    if (its.length > 1 && its.every(it => Number(it.qty || 0) < 1)) {
+      alert('At least one item must have a quantity of 1 or more.'); return;
+    }
+    // Strip out 0-qty items (supplier doesn't have them) before saving
+    const payload = { ...form, items: its.filter(it => Number(it.qty || 0) > 0) };
+    if (modal.ds?.id) await api.put(`/deliveries/${modal.ds.id}`, payload);
+    else await api.post('/deliveries', payload);
     setModal(null); load();
   }
 
@@ -195,23 +229,38 @@ export default function Deliveries() {
               <div className="text-[11.5px] text-gray-500 font-medium mb-1">Items</div>
               <table className="w-full border-collapse text-[11.5px] border border-gray-100 rounded overflow-hidden">
                 <thead><tr className="bg-gray-50">
-                  {['Product', 'Qty', 'Note', ''].map(h => <th key={h} className="px-2 py-1 text-left border-b border-gray-100 text-[11px] text-gray-500 font-medium">{h}</th>)}
+                  {['Product', 'Qty', 'Remark', ''].map(h => <th key={h} className="px-2 py-1 text-left border-b border-gray-100 text-[11px] text-gray-500 font-medium">{h}</th>)}
                 </tr></thead>
                 <tbody>
-                  {form.items.map((it, i) => (
-                    <tr key={i}>
-                      <td className="px-2 py-1 text-[12px] font-medium">{it.product_name}</td>
-                      <td className="px-2 py-1">
-                        <input type="number" min="1" value={it.qty} onChange={e => setItem(i, 'qty', parseInt(e.target.value) || 1)} className="w-16 px-1 py-0.5 border border-gray-200 rounded text-[11.5px] focus:outline-none" />
-                      </td>
-                      <td className="px-2 py-1">
-                        <input value={it.note || ''} onChange={e => setItem(i, 'note', e.target.value)} className="w-full px-1 py-0.5 border border-gray-200 rounded text-[11.5px] focus:outline-none" placeholder="Optional note…" />
-                      </td>
-                      <td className="px-2 py-1">
-                        <button type="button" onClick={() => removeItem(i)} className="text-red-400 hover:text-red-600"><i className="ti ti-x text-xs" /></button>
-                      </td>
-                    </tr>
-                  ))}
+                  {form.items.map((it, i) => {
+                    const singleItem = form.items.length === 1;
+                    const minQty = singleItem ? 1 : 0;
+                    return (
+                      <tr key={i}>
+                        <td className="px-2 py-1 text-[12px] font-medium">{it.product_name}</td>
+                        <td className="px-2 py-1">
+                          <input
+                            type="number"
+                            min={minQty}
+                            value={it.qty}
+                            onChange={e => {
+                              let v = parseInt(e.target.value);
+                              if (isNaN(v) || v < 0) v = 0;
+                              if (singleItem && v < 1) v = 1;
+                              setItem(i, 'qty', v);
+                            }}
+                            className="w-16 px-1 py-0.5 border border-gray-200 rounded text-[11.5px] focus:outline-none"
+                          />
+                        </td>
+                        <td className="px-2 py-1">
+                          <input value={it.remark || ''} onChange={e => setItem(i, 'remark', e.target.value)} className="w-full px-1 py-0.5 border border-gray-200 rounded text-[11.5px] focus:outline-none" placeholder="Remark…" />
+                        </td>
+                        <td className="px-2 py-1">
+                          <button type="button" onClick={() => removeItem(i)} className="text-red-400 hover:text-red-600"><i className="ti ti-x text-xs" /></button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
