@@ -75,14 +75,15 @@ export default function Quotations() {
           <i className="ti ti-search text-gray-400" /><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search ID or customer…" className="text-[12px] focus:outline-none flex-1 sm:w-52" />{search&&<button onClick={()=>setSearch('')}><i className="ti ti-x text-gray-400 text-xs"/></button>}
         </div>
         <div className="overflow-x-auto"><table className="w-full text-[12.5px] border-collapse">
-          <thead><tr>{['ID','Date','Customer','Gross','Disc','Total','Status','Sigs','Actions'].map(h=><th key={h} className="text-left px-2 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100 whitespace-nowrap">{h}</th>)}</tr></thead>
+          <thead><tr>{['No.','ID','Date','Customer','Gross','Disc','Total','Status','Sigs','Actions'].map(h=><th key={h} className="text-left px-2 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100 whitespace-nowrap">{h}</th>)}</tr></thead>
           <tbody>
-            {filtered.map(q => {
+            {[...filtered].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map((q, idx) => {
               const items = (q.items||[]).filter(i=>i?.product_id);
               const t2 = calcTotals(items, q.overall_disc||0, q.overall_disc_type||'pct', 0);
               const dt = t2.ld + t2.oda;
               return (
                 <tr key={q.id} className="hover:bg-gray-50">
+                  <td className="px-2 py-2 border-b border-gray-50 text-gray-400 text-[11.5px]">{idx+1}</td>
                   <td className="px-2 py-2 border-b border-gray-50 font-medium">{q.id}</td>
                   <td className="px-2 py-2 border-b border-gray-50">{q.date}</td>
                   <td className="px-2 py-2 border-b border-gray-50">{q.customer_name}</td>

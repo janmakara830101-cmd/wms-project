@@ -67,15 +67,16 @@ export default function Invoices() {
           <i className="ti ti-search text-gray-400" /><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search invoice # or customer…" className="text-[12px] focus:outline-none flex-1 sm:w-52" />{search&&<button onClick={()=>setSearch('')}><i className="ti ti-x text-gray-400 text-xs"/></button>}
         </div>
         <div className="overflow-x-auto"><table className="w-full text-[12.5px] border-collapse">
-          <thead><tr>{['Invoice#','Date','Customer','Total','Paid','Balance','Status','Sigs','Actions'].map(h=><th key={h} className="text-left px-2 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100 whitespace-nowrap">{h}</th>)}</tr></thead>
+          <thead><tr>{['No.','Invoice#','Date','Customer','Total','Paid','Balance','Status','Sigs','Actions'].map(h=><th key={h} className="text-left px-2 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100 whitespace-nowrap">{h}</th>)}</tr></thead>
           <tbody>
-            {filtered.map(inv => {
+            {[...filtered].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map((inv, idx) => {
               const items = (inv.items||[]).filter(i=>i?.product_id);
               const t = calcTotals(items, inv.overall_disc||0, inv.overall_disc_type||'pct', taxRate);
               const paid = invPaid(inv);
               const bal = Math.max(0, t.total - paid);
               return (
                 <tr key={inv.id} className="hover:bg-gray-50">
+                  <td className="px-2 py-2 border-b border-gray-50 text-gray-400 text-[11.5px]">{idx+1}</td>
                   <td className="px-2 py-2 border-b border-gray-50 font-medium">{inv.id}</td>
                   <td className="px-2 py-2 border-b border-gray-50">{inv.date}</td>
                   <td className="px-2 py-2 border-b border-gray-50">{inv.customer_name}</td>

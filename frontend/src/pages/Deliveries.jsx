@@ -104,13 +104,14 @@ export default function Deliveries() {
         </div>
         <div className="overflow-x-auto"><table className="w-full text-[12.5px] border-collapse">
           <thead>
-            <tr>{['DS#', 'Date', 'Invoice', 'Customer', 'Items', 'Driver', 'Status', 'Sigs', 'Actions'].map(h =>
+            <tr>{['No.', 'DS#', 'Date', 'Invoice', 'Customer', 'Items', 'Driver', 'Status', 'Sigs', 'Actions'].map(h =>
               <th key={h} className="text-left px-2 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100 whitespace-nowrap">{h}</th>
             )}</tr>
           </thead>
           <tbody>
-            {filtered.map(ds => (
+            {[...filtered].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map((ds, idx) => (
               <tr key={ds.id} className="hover:bg-gray-50">
+                <td className="px-2 py-2 border-b border-gray-50 text-gray-400 text-[11.5px]">{idx+1}</td>
                 <td className="px-2 py-2 border-b border-gray-50 font-medium">{ds.id}</td>
                 <td className="px-2 py-2 border-b border-gray-50">{ds.date}</td>
                 <td className="px-2 py-2 border-b border-gray-50 text-[#1D9E75]">{ds.invoice_id}</td>

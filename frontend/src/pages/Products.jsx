@@ -119,13 +119,14 @@ export default function Products() {
         {list.length === 0 ? <div className="text-center py-10 text-gray-400"><i className="ti ti-package text-3xl block mb-2 opacity-40" />No products found</div> : (
           <div className="overflow-x-auto"><table className="w-full text-[12.5px] border-collapse">
             <thead><tr>
-              {['SKU','Name','Category','Unit','Cost','Price','Stock Level','Shelf','Actions'].map(h => (
+              {['No.','SKU','Name','Category','Unit','Cost','Price','Stock Level','Shelf','Actions'].map(h => (
                 <th key={h} className="text-left px-2 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100 whitespace-nowrap">{h}</th>
               ))}
             </tr></thead>
             <tbody>
-              {list.map(p => (
+              {list.map((p, idx) => (
                 <tr key={p.id} className="hover:bg-gray-50">
+                  <td className="px-2 py-2 border-b border-gray-50 text-gray-400 text-[11.5px]">{idx+1}</td>
                   <td className="px-2 py-2 border-b border-gray-50 text-gray-400">{p.sku}</td>
                   <td className="px-2 py-2 border-b border-gray-50"><div className="font-medium">{p.name}</div>{p.name_kh && <div className="text-[10px] text-gray-400">{p.name_kh}</div>}</td>
                   <td className="px-2 py-2 border-b border-gray-50"><CatBadge category={p} /></td>

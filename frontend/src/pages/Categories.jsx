@@ -50,13 +50,16 @@ export default function Categories() {
       </div>
       <div className="px-5 py-4">
         <div className="grid grid-cols-[repeat(auto-fill,minmax(195px,1fr))] gap-3">
-          {cats.map(c => {
+          {cats.map((c, idx) => {
             const n = products.filter(p => p.category_id === c.id).length;
             return (
               <div key={c.id} className="border border-gray-100 rounded-xl p-3 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-md flex items-center justify-center text-[17px] flex-shrink-0" style={{ background: c.color, color: c.text_color }}>
-                    <i className={`ti ${c.icon}`} />
+                  <div className="relative">
+                    <div className="w-9 h-9 rounded-md flex items-center justify-center text-[17px] flex-shrink-0" style={{ background: c.color, color: c.text_color }}>
+                      <i className={`ti ${c.icon}`} />
+                    </div>
+                    <span className="absolute -top-1.5 -left-1.5 w-4 h-4 rounded-full bg-gray-200 text-gray-600 text-[9px] font-bold flex items-center justify-center leading-none">{idx+1}</span>
                   </div>
                   <div>
                     <div className="text-[13px] font-medium">{c.name}</div>

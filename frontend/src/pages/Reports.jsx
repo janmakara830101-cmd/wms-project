@@ -51,9 +51,10 @@ export default function Reports() {
       case 'products':
         return (
           <table className="w-full text-[12.5px] border-collapse">
-            <thead><tr>{['SKU','Name','Category','Price','Stock','Unit','Low Stock At','Status'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
+            <thead><tr>{['No.','SKU','Name','Category','Price','Stock','Unit','Low Stock At','Status'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
             <tbody>{data.map((r,i) => (
               <tr key={i} className="hover:bg-gray-50">
+                <Td className="text-gray-400">{i+1}</Td>
                 <Td>{r.sku}</Td><Td bold>{r.name}</Td><Td>{r.category_name}</Td>
                 <Td>{fm(r.price,sym)}</Td>
                 <Td className={parseInt(r.stock)<=parseInt(r.low_stock_at)?'text-red-600 font-medium':''}>{r.stock}</Td>
@@ -68,9 +69,10 @@ export default function Reports() {
       case 'stock-out':
         return (
           <table className="w-full text-[12.5px] border-collapse">
-            <thead><tr>{['Date','Product','Category','Qty','Supplier','Shelf','Ref','Note'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
+            <thead><tr>{['No.','Date','Product','Category','Qty','Supplier','Shelf','Ref','Note'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
             <tbody>{data.map((r,i) => (
               <tr key={i} className="hover:bg-gray-50">
+                <Td className="text-gray-400">{i+1}</Td>
                 <Td>{r.date}</Td><Td bold>{r.product_name}</Td><Td>{r.category_name}</Td>
                 <Td className={tab==='stock-in'?'text-blue-700':'text-red-700'}>{tab==='stock-in'?'+':'-'}{r.qty}</Td>
                 <Td>{r.supplier_name||'—'}</Td><Td>{r.shelf||'—'}</Td><Td>{r.ref||'—'}</Td><Td>{r.note||'—'}</Td>
@@ -82,7 +84,7 @@ export default function Reports() {
       case 'hot':
         return (
           <table className="w-full text-[12.5px] border-collapse">
-            <thead><tr>{['Rank','Product','Category','Total Sold','Revenue'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
+            <thead><tr>{['No.','Product','Category','Total Sold','Revenue'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
             <tbody>{data.map((r,i) => (
               <tr key={i} className="hover:bg-gray-50">
                 <Td><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold">{i+1}</span></Td>
@@ -97,9 +99,10 @@ export default function Reports() {
       case 'low-stock':
         return (
           <table className="w-full text-[12.5px] border-collapse">
-            <thead><tr>{['Product','Category','Current Stock','Low Stock At','Unit','Needed'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
+            <thead><tr>{['No.','Product','Category','Current Stock','Low Stock At','Unit','Needed'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
             <tbody>{data.map((r,i) => (
               <tr key={i} className="hover:bg-gray-50">
+                <Td className="text-gray-400">{i+1}</Td>
                 <Td bold>{r.name}</Td><Td>{r.category_name}</Td>
                 <Td className="text-red-600 font-medium">{r.stock}</Td>
                 <Td>{r.low_stock_at}</Td><Td>{r.unit}</Td>
@@ -112,9 +115,10 @@ export default function Reports() {
       case 'quotations':
         return (
           <table className="w-full text-[12.5px] border-collapse">
-            <thead><tr>{['ID','Date','Customer','Gross','Disc','Total','Status'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
+            <thead><tr>{['No.','ID','Date','Customer','Gross','Disc','Total','Status'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
             <tbody>{data.map((r,i) => (
               <tr key={i} className="hover:bg-gray-50">
+                <Td className="text-gray-400">{i+1}</Td>
                 <Td bold>{r.id}</Td><Td>{r.date}</Td><Td>{r.customer_name}</Td>
                 <Td>{fm(r.sub,sym)}</Td>
                 <Td className="text-red-600">{parseFloat(r.disc||0)>0?`-${fm(r.disc,sym)}`:'—'}</Td>
@@ -128,12 +132,13 @@ export default function Reports() {
       case 'invoices':
         return (
           <table className="w-full text-[12.5px] border-collapse">
-            <thead><tr>{['Invoice#','Date','Customer','Total','Paid','Balance','Status'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
+            <thead><tr>{['No.','Invoice#','Date','Customer','Total','Paid','Balance','Status'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
             <tbody>
               {data.map((r,i) => {
                 const bal = Math.max(0, parseFloat(r.total||0) - parseFloat(r.paid||0));
                 return (
                   <tr key={i} className="hover:bg-gray-50">
+                    <Td className="text-gray-400">{i+1}</Td>
                     <Td bold>{r.id}</Td><Td>{r.date}</Td><Td>{r.customer_name}</Td>
                     <Td bold>{fm(r.total,sym)}</Td>
                     <Td className="text-green-700">{fm(r.paid,sym)}</Td>
@@ -144,7 +149,7 @@ export default function Reports() {
               })}
               {data.length > 0 && (
                 <tr className="bg-gray-50 border-t border-gray-200">
-                  <td colSpan={3} className="px-2 py-2 text-[11.5px] font-medium text-gray-500">TOTALS</td>
+                  <td colSpan={4} className="px-2 py-2 text-[11.5px] font-medium text-gray-500">TOTALS</td>
                   <Td bold>{fm(data.reduce((s,r)=>s+parseFloat(r.total||0),0),sym)}</Td>
                   <Td className="text-green-700 font-medium">{fm(data.reduce((s,r)=>s+parseFloat(r.paid||0),0),sym)}</Td>
                   <Td className="text-red-600 font-medium">{fm(data.reduce((s,r)=>s+Math.max(0,parseFloat(r.total||0)-parseFloat(r.paid||0)),0),sym)}</Td>
@@ -158,9 +163,10 @@ export default function Reports() {
       case 'customers':
         return (
           <table className="w-full text-[12.5px] border-collapse">
-            <thead><tr>{['Customer','Phone','Email','Total Orders','Total Spent'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
+            <thead><tr>{['No.','Customer','Phone','Email','Total Orders','Total Spent'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
             <tbody>{data.map((r,i) => (
               <tr key={i} className="hover:bg-gray-50">
+                <Td className="text-gray-400">{i+1}</Td>
                 <Td bold>{r.name}</Td><Td>{r.phone||'—'}</Td><Td>{r.email||'—'}</Td>
                 <Td>{r.total_orders}</Td>
                 <Td className="text-green-700 font-medium">{fm(r.total_spent,sym)}</Td>
@@ -172,9 +178,10 @@ export default function Reports() {
       case 'suppliers':
         return (
           <table className="w-full text-[12.5px] border-collapse">
-            <thead><tr>{['Supplier','Contact','Phone','Email','Total Deliveries','Products'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
+            <thead><tr>{['No.','Supplier','Contact','Phone','Email','Total Deliveries','Products'].map(h => <Th key={h}>{h}</Th>)}</tr></thead>
             <tbody>{data.map((r,i) => (
               <tr key={i} className="hover:bg-gray-50">
+                <Td className="text-gray-400">{i+1}</Td>
                 <Td bold>{r.name}</Td><Td>{r.contact||'—'}</Td><Td>{r.phone||'—'}</Td><Td>{r.email||'—'}</Td>
                 <Td>{r.total_deliveries}</Td>
                 <Td className="text-gray-500 max-w-[200px] truncate">{r.products||'—'}</Td>

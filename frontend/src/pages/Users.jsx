@@ -86,12 +86,13 @@ export default function Users() {
         </div>
 
         <div className="overflow-x-auto"><table className="w-full text-[12.5px] border-collapse mb-8">
-          <thead><tr>{['Username', 'Display Name', 'Role', 'Actions'].map(h =>
+          <thead><tr>{['No.', 'Username', 'Display Name', 'Role', 'Actions'].map(h =>
             <th key={h} className="text-left px-2 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100">{h}</th>
           )}</tr></thead>
           <tbody>
-            {filtered.map(u => (
+            {filtered.map((u, idx) => (
               <tr key={u.id} className={`hover:bg-gray-50 ${u.id === me?.id ? 'bg-green-50/30' : ''}`}>
+                <td className="px-2 py-2 border-b border-gray-50 text-gray-400 text-[11.5px]">{idx+1}</td>
                 <td className="px-2 py-2 border-b border-gray-50 font-medium flex items-center gap-1.5">
                   <div className="w-6 h-6 rounded-full bg-[#1D9E75] text-white text-[10px] flex items-center justify-center font-bold">{(u.display_name||u.username).charAt(0).toUpperCase()}</div>
                   {u.username}
