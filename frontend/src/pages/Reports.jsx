@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { fm, xlsExport } from '../utils/helpers';
 import Spinner from '../components/Spinner';
 
+const today10 = () => new Date().toISOString().slice(0,10);
+
 const tabs = [
   { key: 'products',    label: 'Products',      icon: 'ti-box' },
   { key: 'stock-in',    label: 'Stock In',       icon: 'ti-arrow-bar-to-down' },
@@ -22,8 +24,12 @@ export default function Reports() {
   const [tab, setTab] = useState('invoices');
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+
+  const tabLabel = tabs.find(t => t.key === tab)?.label || tab;
+  const coName = settings?.name || 'WMS';
 
   async function load(t) {
     setLoading(true);
@@ -39,8 +45,54 @@ export default function Reports() {
   useEffect(() => { load(tab); }, [tab, dateFrom, dateTo]);
 
   function exportXls() {
-    const filename = `${tab}-report`;
-    xlsExport(data, filename);
+    xlsExport(data, `${tab}-report`);
+  }
+
+  /* ── Print report ── */
+  function printReport() {
+    const el = document.getElementById('report-table');
+    if (!el) return;
+    const dateRange = (dateFrom || dateTo) ? ` (${dateFrom || '…'} → ${dateTo || '…'})` : '';
+    const w = window.open('', '_blank', 'width=1050,height=820');
+    w.document.write(`<!DOCTYPE html><html><head>
+<meta charset="utf-8">
+<title>${tabLabel} Report</title>
+<script src="https://cdn.tailwindcss.com"><\/script>
+<style>
+  body { font-family:Arial,sans-serif; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  @media screen { body { padding:24px; max-width:1050px; margin:0 auto; } }
+  @media print  { @page { size:A4 landscape; margin:10mm 12mm; } body { margin:0; padding:0; } }
+</style>
+</head><body>
+<div class="text-[13px] text-gray-800">
+  <div class="mb-4 pb-2 border-b border-gray-300">
+    <div class="text-[17px] font-semibold">${coName}</div>
+    <div class="text-[13px] font-medium text-gray-600">${tabLabel} Report${dateRange}</div>
+    <div class="text-[11px] text-gray-400">Printed: ${today10()}</div>
+  </div>
+  ${el.outerHTML}
+</div>
+<script>window.addEventListener('load',function(){setTimeout(function(){window.focus();window.print();},1200);});<\/script>
+</body></html>`);
+    w.document.close();
+  }
+
+  /* ── PDF report ── */
+  async function savePdfReport() {
+    const html2pdf = window.html2pdf;
+    if (!html2pdf) { alert('PDF library not loaded.'); return; }
+    const el = document.getElementById('report-content');
+    if (!el) return;
+    setPdfLoading(true);
+    try {
+      await html2pdf().set({
+        margin: [8, 6, 8, 6],
+        filename: `${tabLabel}-Report_${today10()}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false, scrollX: 0, scrollY: 0 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+      }).from(el).save();
+    } finally { setPdfLoading(false); }
   }
 
   function renderTable() {
@@ -200,9 +252,23 @@ export default function Reports() {
     <div>
       <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
         <h1 className="text-base font-medium">Reports</h1>
-        <button onClick={exportXls} className="flex items-center gap-1.5 px-3 py-1.5 border border-green-300 bg-green-50 text-green-700 rounded text-[12.5px] hover:bg-green-100">
-          <i className="ti ti-file-spreadsheet" />Export Excel
-        </button>
+        <div className="flex gap-2">
+          {/* Print */}
+          <button onClick={printReport}
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 bg-white text-gray-700 rounded text-[12.5px] hover:bg-gray-50 shadow-sm">
+            <i className="ti ti-printer" />Print
+          </button>
+          {/* PDF */}
+          <button onClick={savePdfReport} disabled={pdfLoading}
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-red-200 bg-red-50 text-red-700 rounded text-[12.5px] hover:bg-red-100 shadow-sm disabled:opacity-60">
+            {pdfLoading ? <><i className="ti ti-loader-2 animate-spin" />PDF…</> : <><i className="ti ti-file-type-pdf" />PDF</>}
+          </button>
+          {/* Excel */}
+          <button onClick={exportXls}
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-green-300 bg-green-50 text-green-700 rounded text-[12.5px] hover:bg-green-100">
+            <i className="ti ti-file-spreadsheet" />Excel
+          </button>
+        </div>
       </div>
 
       {/* Tab bar */}
@@ -215,7 +281,13 @@ export default function Reports() {
         ))}
       </div>
 
-      <div className="px-5 py-4">
+      <div className="px-5 py-4" id="report-content">
+        {/* Report heading shown in PDF */}
+        <div className="mb-3 hidden" id="report-pdf-header">
+          <div className="text-[15px] font-semibold">{coName}</div>
+          <div className="text-[13px] text-gray-600">{tabLabel} Report</div>
+          <div className="text-[11px] text-gray-400">Generated: {today10()}</div>
+        </div>
         {/* Date filters */}
         {hasDates && (
           <div className="flex items-center gap-3 mb-4 flex-wrap">
@@ -265,7 +337,7 @@ export default function Reports() {
           </div>
         )}
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" id="report-table">
           {renderTable()}
         </div>
       </div>

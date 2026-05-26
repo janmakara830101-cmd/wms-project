@@ -126,7 +126,7 @@ window.addEventListener('load', function() {
   const sigLabels = {
     qt:  { issuer: L.issuedBy, customer: L.approvedBy },
     inv: { issuer: L.issuedBy, customer: L.acceptedBy },
-    ds:  { issuer: L.issuedBy, driver: 'Driver', customer: L.receivedBy },
+    ds:  { issuer: L.issuedBy, customer: L.receivedBy },
     del: { issuer: L.issuedBy, customer: L.receivedBy },
   }[type] || {};
 
@@ -197,9 +197,6 @@ window.addEventListener('load', function() {
           </div>
           <div className="font-medium">{doc.customer_name}</div>
           {(type === 'del' || type === 'ds') && doc.address && <div className="text-[11px] text-gray-500">{doc.address}</div>}
-          {(type === 'del' || type === 'ds') && doc.driver && (
-            <div className="text-[11px] text-gray-500 mt-0.5">Driver: {doc.driver}{doc.vehicle ? ` · ${doc.vehicle}` : ''}</div>
-          )}
         </div>
 
         {/* Items table */}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
-import { can, fm, today, calcTotals } from '../utils/helpers';
+import { can, today } from '../utils/helpers';
 import Modal, { Btn, ModalActions } from '../components/Modal';
 import Badge from '../components/Badge';
 import { SigBadge } from '../components/Badge';
@@ -16,15 +16,13 @@ const Select = ({ children, ...p }) => <select className="w-full px-2 py-1 borde
 
 export default function Deliveries() {
   const { user, settings } = useAuth();
-  const sym = settings?.curr_symbol || '$';
-  const taxRate = parseFloat(settings?.tax_rate) || 10;
   const [dels, setDels] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState(null);
   const [viewModal, setViewModal] = useState(null);
   const [sigModal, setSigModal] = useState(null);
-  const [form, setForm] = useState({ invoice_id: '', date: today(), delivery_date: '', address: '', driver: '', vehicle: '', notes: '', items: [] });
+  const [form, setForm] = useState({ invoice_id: '', date: today(), delivery_date: '', address: '', notes: '', items: [] });
 
   const load = async () => {
     const [r1, r2] = await Promise.all([api.get('/deliveries'), api.get('/invoices')]);
@@ -37,7 +35,7 @@ export default function Deliveries() {
     : dels;
 
   function openCreate() {
-    setForm({ invoice_id: invoices[0]?.id || '', date: today(), delivery_date: '', address: '', driver: '', vehicle: '', notes: '', items: [] });
+    setForm({ invoice_id: invoices[0]?.id || '', date: today(), delivery_date: '', address: '', notes: '', items: [] });
     setModal({ ds: null });
   }
 
@@ -47,8 +45,6 @@ export default function Deliveries() {
       date: ds.date,
       delivery_date: ds.delivery_date || '',
       address: ds.address || '',
-      driver: ds.driver || '',
-      vehicle: ds.vehicle || '',
       notes: ds.notes || '',
       items: (ds.items || []).map(i => ({ product_id: i.product_id, product_name: i.product_name, qty: i.qty, note: i.note || '' }))
     });
@@ -82,10 +78,9 @@ export default function Deliveries() {
     await api.put(`/deliveries/${id}/status`, { status }); load();
   }
 
-
-  const statusNext = { draft: 'dispatched', dispatched: 'delivered' };
+  const statusNext  = { draft: 'dispatched', dispatched: 'delivered' };
   const statusLabel = { draft: 'Dispatch', dispatched: 'Mark Delivered' };
-  const statusIcon = { draft: 'ti-truck', dispatched: 'ti-circle-check' };
+  const statusIcon  = { draft: 'ti-truck', dispatched: 'ti-circle-check' };
   const statusColor = { draft: 'bg-amber-50 border-amber-200 text-amber-700', dispatched: 'bg-blue-50 border-blue-200 text-blue-700' };
 
   if (loading) return <Spinner />;
@@ -96,47 +91,51 @@ export default function Deliveries() {
         <h1 className="text-base font-medium">Delivery Slips</h1>
         {can(user?.role, 'canCreate') && <Btn variant="primary" onClick={openCreate}><i className="ti ti-plus" />Create Delivery</Btn>}
       </div>
+
       <div className="px-5 py-4">
         <div className="flex items-center gap-2 border border-gray-200 rounded-md px-2.5 py-1.5 bg-white mb-3 w-full sm:w-fit">
           <i className="ti ti-search text-gray-400" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search ID, invoice or customer…" className="text-[12px] focus:outline-none flex-1 sm:w-56" />
           {search && <button onClick={() => setSearch('')}><i className="ti ti-x text-gray-400 text-xs" /></button>}
         </div>
-        <div className="overflow-x-auto"><table className="w-full text-[12.5px] border-collapse">
-          <thead>
-            <tr>{['No.', 'DS#', 'Date', 'Invoice', 'Customer', 'Items', 'Driver', 'Status', 'Sigs', 'Actions'].map(h =>
-              <th key={h} className="text-left px-2 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100 whitespace-nowrap">{h}</th>
-            )}</tr>
-          </thead>
-          <tbody>
-            {[...filtered].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map((ds, idx) => (
-              <tr key={ds.id} className="hover:bg-gray-50">
-                <td className="px-2 py-2 border-b border-gray-50 text-gray-400 text-[11.5px] font-mono">{String(idx+1).padStart(4,'0')}</td>
-                <td className="px-2 py-2 border-b border-gray-50 font-medium">{ds.id}</td>
-                <td className="px-2 py-2 border-b border-gray-50">{(ds.date||'').slice(0,10)}</td>
-                <td className="px-2 py-2 border-b border-gray-50 text-[#1D9E75]">{ds.invoice_id}</td>
-                <td className="px-2 py-2 border-b border-gray-50">{ds.customer_name}</td>
-                <td className="px-2 py-2 border-b border-gray-50 text-gray-500">{(ds.items || []).length} item(s)</td>
-                <td className="px-2 py-2 border-b border-gray-50">{ds.driver || '—'}</td>
-                <td className="px-2 py-2 border-b border-gray-50"><Badge status={ds.status} /></td>
-                <td className="px-2 py-2 border-b border-gray-50"><SigBadge sigs={ds.sigs} keys={['issuer', 'driver', 'customer']} /></td>
-                <td className="px-2 py-2 border-b border-gray-50">
-                  <div className="flex gap-1 flex-wrap">
-                    <Btn variant="sm" onClick={() => setViewModal({ type: 'ds', doc: ds })}><i className="ti ti-eye" />View</Btn>
-                    <Btn variant="sm" className="bg-blue-50 border-blue-200 text-blue-700" onClick={() => setSigModal({ type: 'ds', doc: ds })}><i className="ti ti-signature" />Sign</Btn>
-                    {can(user?.role, 'canEdit') && ds.status !== 'delivered' && (
-                      <Btn variant="sm" className={statusColor[ds.status] || ''} onClick={() => setStatus(ds.id, statusNext[ds.status])}>
-                        <i className={`ti ${statusIcon[ds.status]}`} />{statusLabel[ds.status]}
-                      </Btn>
-                    )}
-                    {can(user?.role, 'canEdit') && ds.status === 'draft' && <Btn variant="edit" onClick={() => openEdit(ds)}><i className="ti ti-edit" />Edit</Btn>}
-                    {can(user?.role, 'canDelete') && ds.status === 'draft' && <Btn variant="danger" onClick={() => del(ds.id)}><i className="ti ti-trash" />Delete</Btn>}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table></div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-[12.5px] border-collapse">
+            <thead>
+              <tr>{['No.', 'DS#', 'Date', 'Invoice', 'Customer', 'Items', 'Status', 'Sigs', 'Actions'].map(h =>
+                <th key={h} className="text-left px-2 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100 whitespace-nowrap">{h}</th>
+              )}</tr>
+            </thead>
+            <tbody>
+              {[...filtered].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map((ds, idx) => (
+                <tr key={ds.id} className="hover:bg-gray-50">
+                  <td className="px-2 py-2 border-b border-gray-50 text-gray-400 text-[11.5px] font-mono">{String(idx+1).padStart(4,'0')}</td>
+                  <td className="px-2 py-2 border-b border-gray-50 font-medium">{ds.id}</td>
+                  <td className="px-2 py-2 border-b border-gray-50">{(ds.date||'').slice(0,10)}</td>
+                  <td className="px-2 py-2 border-b border-gray-50 text-[#1D9E75]">{ds.invoice_id}</td>
+                  <td className="px-2 py-2 border-b border-gray-50">{ds.customer_name}</td>
+                  <td className="px-2 py-2 border-b border-gray-50 text-gray-500">{(ds.items || []).length} item(s)</td>
+                  <td className="px-2 py-2 border-b border-gray-50"><Badge status={ds.status} /></td>
+                  <td className="px-2 py-2 border-b border-gray-50"><SigBadge sigs={ds.sigs} keys={['issuer', 'customer']} /></td>
+                  <td className="px-2 py-2 border-b border-gray-50">
+                    <div className="flex gap-1 flex-wrap">
+                      <Btn variant="sm" onClick={() => setViewModal({ type: 'ds', doc: ds })}><i className="ti ti-eye" />View</Btn>
+                      <Btn variant="sm" className="bg-blue-50 border-blue-200 text-blue-700" onClick={() => setSigModal({ type: 'ds', doc: ds })}><i className="ti ti-signature" />Sign</Btn>
+                      {can(user?.role, 'canEdit') && ds.status !== 'delivered' && (
+                        <Btn variant="sm" className={statusColor[ds.status] || ''} onClick={() => setStatus(ds.id, statusNext[ds.status])}>
+                          <i className={`ti ${statusIcon[ds.status]}`} />{statusLabel[ds.status]}
+                        </Btn>
+                      )}
+                      {can(user?.role, 'canEdit') && ds.status === 'draft' && <Btn variant="edit" onClick={() => openEdit(ds)}><i className="ti ti-edit" />Edit</Btn>}
+                      {can(user?.role, 'canDelete') && ds.status === 'draft' && <Btn variant="danger" onClick={() => del(ds.id)}><i className="ti ti-trash" />Delete</Btn>}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
         {filtered.length === 0 && (
           <div className="text-center py-12 text-gray-400">
             <i className="ti ti-truck text-3xl block mb-2 opacity-40" />No delivery slips found
@@ -144,6 +143,7 @@ export default function Deliveries() {
         )}
       </div>
 
+      {/* Create / Edit Modal */}
       {modal && (
         <Modal onClose={() => setModal(null)}>
           <h2 className="text-sm font-medium mb-4">{modal.ds?.id ? `Edit Delivery ${modal.ds.id}` : 'Create Delivery Slip'}</h2>
@@ -156,8 +156,6 @@ export default function Deliveries() {
             <F label="Date"><Input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} /></F>
             <F label="Expected Delivery Date"><Input type="date" value={form.delivery_date} onChange={e => setForm(f => ({ ...f, delivery_date: e.target.value }))} /></F>
             <F label="Delivery Address"><Input value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} /></F>
-            <F label="Driver Name"><Input value={form.driver} onChange={e => setForm(f => ({ ...f, driver: e.target.value }))} /></F>
-            <F label="Vehicle / Plate"><Input value={form.vehicle} onChange={e => setForm(f => ({ ...f, vehicle: e.target.value }))} /></F>
           </div>
 
           {form.items.length > 0 && (
