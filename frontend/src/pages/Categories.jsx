@@ -49,32 +49,61 @@ export default function Categories() {
         {can(user?.role,'canCreate') && <Btn variant="primary" onClick={() => openForm(null)}><i className="ti ti-plus" />Add Category</Btn>}
       </div>
       <div className="px-5 py-4">
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(195px,1fr))] gap-3">
-          {cats.map((c, idx) => {
-            const n = products.filter(p => p.category_id === c.id).length;
-            return (
-              <div key={c.id} className="border border-gray-100 rounded-xl p-3 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <div className="w-9 h-9 rounded-md flex items-center justify-center text-[17px] flex-shrink-0" style={{ background: c.color, color: c.text_color }}>
-                      <i className={`ti ${c.icon}`} />
-                    </div>
-                    <span className="absolute -top-1.5 -left-2 h-4 min-w-[1.4rem] px-0.5 rounded bg-gray-200 text-gray-600 text-[8px] font-bold font-mono flex items-center justify-center leading-none">{String(idx+1).padStart(4,'0')}</span>
-                  </div>
-                  <div>
-                    <div className="text-[13px] font-medium">{c.name}</div>
-                    <div className="text-[11px] text-gray-400">{c.name_kh||'—'}</div>
-                    <div className="text-[11px] text-gray-500">{n} product{n!==1?'s':''}</div>
-                  </div>
-                </div>
-                <div className="flex flex-col gap-1">
-                  {can(user?.role,'canEdit') && <Btn variant="edit" onClick={() => openForm(c)}><i className="ti ti-edit" />Edit</Btn>}
-                  {can(user?.role,'canDelete') && <Btn variant="danger" onClick={() => del(c)}><i className="ti ti-trash" />Delete</Btn>}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        {cats.length === 0 ? (
+          <div className="text-center py-16 text-gray-400">
+            <i className="ti ti-category text-3xl block mb-2 opacity-40" />No categories yet
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-[12.5px] border-collapse">
+              <thead>
+                <tr>
+                  {['No.', 'Icon', 'Name (English)', 'ឈ្មោះ (ខ្មែរ)', 'Products', 'Actions'].map(h => (
+                    <th key={h} className="text-left px-3 py-2 text-[11.5px] font-medium text-gray-400 border-b border-gray-100 whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {cats.map((c, idx) => {
+                  const n = products.filter(p => p.category_id === c.id).length;
+                  return (
+                    <tr key={c.id} className="hover:bg-gray-50 group">
+                      {/* No. */}
+                      <td className="px-3 py-2.5 border-b border-gray-50 text-gray-400 text-[11.5px] font-mono">
+                        {String(idx+1).padStart(4,'0')}
+                      </td>
+                      {/* Icon */}
+                      <td className="px-3 py-2.5 border-b border-gray-50">
+                        <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[18px] shadow-sm"
+                          style={{ background: c.color, color: c.text_color }}>
+                          <i className={`ti ${c.icon}`} />
+                        </div>
+                      </td>
+                      {/* Name EN */}
+                      <td className="px-3 py-2.5 border-b border-gray-50 font-medium">{c.name}</td>
+                      {/* Name KH */}
+                      <td className="px-3 py-2.5 border-b border-gray-50 text-gray-500">{c.name_kh || '—'}</td>
+                      {/* Products count */}
+                      <td className="px-3 py-2.5 border-b border-gray-50">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium"
+                          style={{ background: c.color, color: c.text_color }}>
+                          <i className="ti ti-package text-[10px]" />{n} product{n !== 1 ? 's' : ''}
+                        </span>
+                      </td>
+                      {/* Actions */}
+                      <td className="px-3 py-2.5 border-b border-gray-50">
+                        <div className="flex gap-1">
+                          {can(user?.role,'canEdit') && <Btn variant="edit" onClick={() => openForm(c)}><i className="ti ti-edit" />Edit</Btn>}
+                          {can(user?.role,'canDelete') && <Btn variant="danger" onClick={() => del(c)}><i className="ti ti-trash" />Delete</Btn>}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {modal && (
