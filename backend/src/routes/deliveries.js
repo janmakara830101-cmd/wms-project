@@ -7,7 +7,7 @@ router.get('/', auth, async (req, res) => {
     SELECT d.*, c.name as customer_name,
       json_agg(json_build_object(
         'id', di.id, 'product_id', di.product_id, 'product_name', di.product_name,
-        'qty', di.qty, 'note', di.note
+        'qty', di.qty, 'remark', di.note
       ) ORDER BY di.id) FILTER (WHERE di.id IS NOT NULL) as items,
       json_build_object(
         'issuer',   sig_i.signature_data,  'issuer_date',   sig_i.signed_at,
@@ -47,7 +47,7 @@ router.post('/', auth, requirePerm('canCreate'), async (req, res) => {
     for (const it of (items||[])) {
       await client.query(
         `INSERT INTO delivery_items (delivery_id,product_id,product_name,qty,note) VALUES ($1,$2,$3,$4,$5)`,
-        [id, it.product_id, it.product_name||'', it.qty, it.note||'']
+        [id, it.product_id, it.product_name||'', it.qty, it.remark||it.note||'']
       );
     }
     await client.query('COMMIT');
@@ -71,7 +71,7 @@ router.put('/:id', auth, requirePerm('canEdit'), async (req, res) => {
     for (const it of (items||[])) {
       await client.query(
         `INSERT INTO delivery_items (delivery_id,product_id,product_name,qty,note) VALUES ($1,$2,$3,$4,$5)`,
-        [req.params.id, it.product_id, it.product_name||'', it.qty, it.note||'']
+        [req.params.id, it.product_id, it.product_name||'', it.qty, it.remark||it.note||'']
       );
     }
     await client.query('COMMIT');
