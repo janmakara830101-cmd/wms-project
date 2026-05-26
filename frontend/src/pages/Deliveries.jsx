@@ -34,12 +34,24 @@ export default function Deliveries() {
     ? dels.filter(d => d.id?.toLowerCase().includes(search.toLowerCase()) || d.customer_name?.toLowerCase().includes(search.toLowerCase()) || d.invoice_id?.toLowerCase().includes(search.toLowerCase()))
     : dels;
 
-  // Invoice IDs that are fully delivered — exclude from "Create" dropdown
-  const fullyDeliveredIds = new Set(dels.filter(d => d.status === 'delivered').map(d => d.invoice_id));
-  // Invoice IDs with an in-progress delivery (draft or dispatched) — show as [Partial]
-  const partialIds        = new Set(dels.filter(d => d.status !== 'delivered').map(d => d.invoice_id));
-  // Only show invoices not yet fully delivered
-  const availableInvoices = invoices.filter(inv => !fullyDeliveredIds.has(inv.id));
+  // Available invoices: hide only when EVERY item's qty has been fully covered
+  // by the sum of quantities across all 'delivered' delivery slips for that invoice.
+  const availableInvoices = invoices.filter(inv => {
+    const invItems = (inv.items || []).filter(it => it?.product_id);
+    if (!invItems.length) return true; // no items → always show
+    // Sum delivered qty per product from all 'delivered' DSes
+    const deliveredQtys = {};
+    dels.filter(d => d.invoice_id === inv.id && d.status === 'delivered')
+        .forEach(d => (d.items || []).forEach(it => {
+          deliveredQtys[it.product_id] = (deliveredQtys[it.product_id] || 0) + Number(it.qty || 0);
+        }));
+    // Show if ANY item still has remaining quantity to deliver
+    return invItems.some(it => (deliveredQtys[it.product_id] || 0) < Number(it.qty || 0));
+  });
+  // Invoices that have at least one 'delivered' DS but are still available → label [Partial]
+  const partiallyDeliveredIds = new Set(
+    dels.filter(d => d.status === 'delivered').map(d => d.invoice_id)
+  );
 
   function openCreate() {
     const first = availableInvoices[0];
@@ -167,7 +179,7 @@ export default function Deliveries() {
                 <Select value={form.invoice_id} onChange={e => onInvoiceChange(e.target.value)} disabled={!!modal.ds?.id}>
                   {(modal.ds?.id ? invoices : availableInvoices).map(inv => (
                     <option key={inv.id} value={inv.id}>
-                      {inv.id} — {inv.customer_name}{partialIds.has(inv.id) && !modal.ds?.id ? ' [Partial]' : ''}
+                      {inv.id} — {inv.customer_name}{!modal.ds?.id && partiallyDeliveredIds.has(inv.id) ? ' [Partial]' : ''}
                     </option>
                   ))}
                 </Select>
