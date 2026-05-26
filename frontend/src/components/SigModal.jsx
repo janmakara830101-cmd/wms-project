@@ -5,6 +5,7 @@ import api from '../utils/api';
 const ROLES = {
   qt:  { issuer: 'Issued by (staff)', customer: 'Approved by (customer)' },
   inv: { issuer: 'Issued by (staff)', customer: 'Accepted by (customer)' },
+  ds:  { issuer: 'Issued by (staff)', customer: 'Received by (customer)' },
   del: { issuer: 'Issued by (staff)', customer: 'Received by (customer)' },
 };
 
