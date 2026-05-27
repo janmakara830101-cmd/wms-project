@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { can, fm, today, calcTotals } from '../utils/helpers';
@@ -13,6 +13,51 @@ import useLoad from '../utils/useLoad';
 const F = ({ label, children }) => <div><label className="block text-[11.5px] text-gray-500 mb-1">{label}</label>{children}</div>;
 const Input = (p) => <input className="w-full px-2 py-1 border border-gray-200 rounded text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p} />;
 const Select = ({ children, ...p }) => <select className="w-full px-2 py-1 border border-gray-200 rounded text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p}>{children}</select>;
+
+/* ── Searchable product picker ── */
+const ProductSearch = ({ products, value, onSelect }) => {
+  const [q, setQ]       = useState('');
+  const [open, setOpen] = useState(false);
+  const inputRef        = useRef(null);
+  const sel  = products.find(p => p.id === value);
+  const hits = q
+    ? products.filter(p =>
+        p.name?.toLowerCase().includes(q.toLowerCase()) ||
+        p.name_kh?.toLowerCase().includes(q.toLowerCase()))
+    : products;
+
+  return (
+    <div className="relative" style={{ minWidth: 150 }}>
+      <input
+        ref={inputRef}
+        className="w-full px-1 py-0.5 border border-gray-200 rounded text-[11.5px] focus:outline-none focus:border-[#1D9E75]"
+        placeholder="Type to search…"
+        value={open ? q : (sel?.name || '')}
+        onChange={e => { setQ(e.target.value); setOpen(true); }}
+        onFocus={() => { setQ(''); setOpen(true); }}
+        onBlur={() => setTimeout(() => setOpen(false), 160)}
+      />
+      {open && (
+        <div className="absolute z-[999] top-full left-0 w-60 bg-white border border-gray-200 rounded-md shadow-xl max-h-48 overflow-y-auto mt-0.5">
+          {hits.length === 0 ? (
+            <div className="px-3 py-3 text-[11px] text-red-500 flex items-start gap-1.5">
+              <i className="ti ti-alert-circle text-sm shrink-0 mt-0.5" />
+              <span>Product not found.<br />Please add it in the <strong>Products</strong> page first.</span>
+            </div>
+          ) : hits.map(p => (
+            <button key={p.id} type="button"
+              onMouseDown={() => { onSelect(p); setOpen(false); setQ(''); }}
+              className={`w-full text-left px-2.5 py-1.5 text-[11.5px] border-b border-gray-50 last:border-0 flex justify-between items-center hover:bg-gray-50
+                ${value === p.id ? 'bg-[#E6F7F2]' : ''}`}>
+              <span className="font-medium truncate max-w-[160px]">{p.name}</span>
+              <span className="text-gray-400 text-[10.5px] shrink-0 ml-1">${parseFloat(p.price||0).toFixed(2)}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function Quotations() {
   const { user, settings } = useAuth();
@@ -37,20 +82,36 @@ export default function Quotations() {
 
   function openForm(qt) {
     if (qt) {
-      setForm({ date: qt.date, customer_id: qt.customer_id, items: (qt.items||[]).filter(i=>i?.product_id).map(i=>({product_id:i.product_id,qty:i.qty,price:parseFloat(i.price),disc:0,remark:i.remark||''})), overall_disc: parseFloat(qt.overall_disc||0), overall_disc_type: qt.overall_disc_type||'pct', notes: qt.notes||'' });
+      setForm({ date: qt.date, customer_id: qt.customer_id, items: (qt.items||[]).filter(i=>i?.product_id).map(i=>({product_id:i.product_id,product_name:i.product_name||'',qty:i.qty,price:parseFloat(i.price),disc:0,remark:i.remark||''})), overall_disc: parseFloat(qt.overall_disc||0), overall_disc_type: qt.overall_disc_type||'pct', notes: qt.notes||'' });
     } else {
-      const p = products[0];
-      setForm({ date: today(), customer_id: customers[0]?.id||'', items: p ? [{ product_id: p.id, qty:1, price: parseFloat(p.price), disc:0, remark:'' }] : [], overall_disc:0, overall_disc_type:'pct', notes:'' });
+      setForm({ date: today(), customer_id: customers[0]?.id||'', items: [], overall_disc:0, overall_disc_type:'pct', notes:'' });
     }
     setModal({ qt });
   }
 
   function setItem(i, key, val) { setForm(f => { const items = [...f.items]; items[i] = {...items[i], [key]: val}; return {...f, items}; }); }
-  function addItem() { const p = products[0]; if (p) setForm(f => ({...f, items: [...f.items, { product_id: p.id, qty:1, price: parseFloat(p.price), disc:0, remark:'' }]})); }
+
+  /* Called when user picks a product from the search dropdown */
+  function selectProduct(i, p) {
+    setForm(f => {
+      const items = [...f.items];
+      items[i] = { ...items[i], product_id: p.id, product_name: p.name, price: parseFloat(p.price) || 0 };
+      return { ...f, items };
+    });
+  }
+
+  /* Add a blank row — user must pick a product via search */
+  function addItem() {
+    setForm(f => ({ ...f, items: [...f.items, { product_id: null, product_name: '', qty: 1, price: 0, disc: 0, remark: '' }] }));
+  }
 
   function removeItem(i) { setForm(f => ({...f, items: f.items.filter((_,j) => j!==i)})); }
 
   async function save() {
+    if (form.items.length === 0) { alert('Please add at least one product.'); return; }
+    if (form.items.some(it => !it.product_id)) {
+      alert('Some rows have no product selected.\nPlease pick a product or remove the empty row.'); return;
+    }
     if (modal.qt?.id) await api.put(`/quotations/${modal.qt.id}`, form);
     else await api.post('/quotations', form);
     setModal(null); load();
@@ -120,12 +181,14 @@ export default function Quotations() {
             <thead><tr className="bg-gray-50">{['Product','Qty','Price','Sub','Remark',''].map(h=><th key={h} className="px-1.5 py-1 text-left border-b border-gray-100 text-[11px] text-gray-500 font-medium">{h}</th>)}</tr></thead>
             <tbody>
               {form.items.map((it, i) => (
-                <tr key={i}>
-                  <td className="px-1 py-0.5"><Select value={it.product_id} onChange={e=>{const p=products.find(x=>x.id==e.target.value);setItem(i,'product_id',parseInt(e.target.value));if(p)setItem(i,'price',parseFloat(p.price));}}>{products.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</Select></td>
+                <tr key={i} className={!it.product_id ? 'bg-red-50' : ''}>
+                  <td className="px-1 py-0.5">
+                    <ProductSearch products={products} value={it.product_id} onSelect={p => selectProduct(i, p)} />
+                  </td>
                   <td className="px-1 py-0.5"><input type="number" min="1" value={it.qty} onChange={e=>setItem(i,'qty',parseInt(e.target.value)||1)} className="w-14 px-1 py-0.5 border border-gray-200 rounded text-[11.5px] focus:outline-none" /></td>
                   <td className="px-1 py-0.5"><input type="number" step="0.01" value={it.price} onChange={e=>setItem(i,'price',parseFloat(e.target.value)||0)} className="w-20 px-1 py-0.5 border border-gray-200 rounded text-[11.5px] focus:outline-none" /></td>
-                  <td className="px-1 py-0.5 font-medium text-[11.5px]">{fm(it.qty*it.price,sym)}</td>
-                  <td className="px-1 py-0.5"><input value={it.remark} onChange={e=>setItem(i,'remark',e.target.value)} className="w-full px-1 py-0.5 border border-gray-200 rounded text-[11.5px] focus:outline-none" placeholder="…"/></td>
+                  <td className="px-1 py-0.5 font-medium text-[11.5px]">{fm((it.qty||0)*(it.price||0),sym)}</td>
+                  <td className="px-1 py-0.5"><input value={it.remark||''} onChange={e=>setItem(i,'remark',e.target.value)} className="w-full px-1 py-0.5 border border-gray-200 rounded text-[11.5px] focus:outline-none" placeholder="…"/></td>
                   <td className="px-1 py-0.5"><button type="button" onClick={()=>removeItem(i)} className="text-red-400 hover:text-red-600"><i className="ti ti-x text-xs"/></button></td>
                 </tr>
               ))}
