@@ -14,43 +14,92 @@ const F = ({ label, children }) => <div><label className="block text-[11.5px] te
 const Input = (p) => <input className="w-full px-2 py-1 border border-gray-200 rounded text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p} />;
 const Select = ({ children, ...p }) => <select className="w-full px-2 py-1 border border-gray-200 rounded text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p}>{children}</select>;
 
-/* ── Searchable product picker ── */
+/* ── Searchable product picker ──────────────────────────────────────────────
+   Uses position:fixed so the dropdown escapes any overflow:hidden ancestor
+   (the items table uses overflow-hidden for rounded corners).
+   onBlur auto-selects the first match synchronously — this fires BEFORE the
+   Save button's onClick, so validation sees a valid product_id immediately.
+────────────────────────────────────────────────────────────────────────── */
 const ProductSearch = ({ products, value, onSelect }) => {
-  const [q, setQ]       = useState('');
+  const [q, setQ]     = useState('');
   const [open, setOpen] = useState(false);
-  const inputRef        = useRef(null);
+  const [pos, setPos]   = useState({ top: 0, left: 0, minWidth: 220 });
+  const inputRef  = useRef(null);
+  const qRef      = useRef('');   // sync copy of q for use in onBlur
+  const hitsRef   = useRef([]);   // sync copy of hits for use in onBlur
+
   const sel  = products.find(p => p.id === value);
   const hits = q
     ? products.filter(p =>
         p.name?.toLowerCase().includes(q.toLowerCase()) ||
         p.name_kh?.toLowerCase().includes(q.toLowerCase()))
     : products;
+  hitsRef.current = hits;
+
+  function openDrop() {
+    if (inputRef.current) {
+      const r = inputRef.current.getBoundingClientRect();
+      setPos({ top: r.bottom + 2, left: r.left, minWidth: Math.max(230, r.width) });
+    }
+    setOpen(true);
+  }
+
+  function handleSelect(p) {
+    onSelect(p);
+    qRef.current = '';
+    setQ('');
+    setOpen(false);
+  }
+
+  /* Synchronous auto-select — fires before Save's onClick so validation passes */
+  function handleBlur() {
+    const typed = qRef.current.trim();
+    if (typed && hitsRef.current.length > 0) {
+      const exact = hitsRef.current.find(
+        p => p.name.toLowerCase() === typed.toLowerCase()
+      );
+      handleSelect(exact || hitsRef.current[0]);
+    } else {
+      setOpen(false);
+    }
+  }
 
   return (
-    <div className="relative" style={{ minWidth: 150 }}>
+    <div>
       <input
         ref={inputRef}
-        className="w-full px-1 py-0.5 border border-gray-200 rounded text-[11.5px] focus:outline-none focus:border-[#1D9E75]"
-        placeholder="Type to search…"
+        className={`w-full px-1 py-0.5 border rounded text-[11.5px] focus:outline-none
+          ${value ? 'border-gray-200 focus:border-[#1D9E75]'
+                  : 'border-orange-300 bg-orange-50'}`}
+        placeholder="Type product name…"
         value={open ? q : (sel?.name || '')}
-        onChange={e => { setQ(e.target.value); setOpen(true); }}
-        onFocus={() => { setQ(''); setOpen(true); }}
-        onBlur={() => setTimeout(() => setOpen(false), 160)}
+        onChange={e => { qRef.current = e.target.value; setQ(e.target.value); setOpen(true); }}
+        onFocus={() => { qRef.current = ''; setQ(''); openDrop(); }}
+        onBlur={handleBlur}
       />
       {open && (
-        <div className="absolute z-[999] top-full left-0 w-60 bg-white border border-gray-200 rounded-md shadow-xl max-h-48 overflow-y-auto mt-0.5">
+        <div
+          style={{ position: 'fixed', top: pos.top, left: pos.left, minWidth: pos.minWidth, zIndex: 9999 }}
+          className="bg-white border border-gray-200 rounded-md shadow-xl max-h-52 overflow-y-auto"
+        >
           {hits.length === 0 ? (
-            <div className="px-3 py-3 text-[11px] text-red-500 flex items-start gap-1.5">
+            <div className="px-3 py-3 text-[11px] text-red-500 flex items-start gap-2">
               <i className="ti ti-alert-circle text-sm shrink-0 mt-0.5" />
-              <span>Product not found.<br />Please add it in the <strong>Products</strong> page first.</span>
+              <span>
+                <strong>"{q}"</strong> not found.<br />
+                Please add it in the <strong>Products</strong> page first.
+              </span>
             </div>
           ) : hits.map(p => (
             <button key={p.id} type="button"
-              onMouseDown={() => { onSelect(p); setOpen(false); setQ(''); }}
-              className={`w-full text-left px-2.5 py-1.5 text-[11.5px] border-b border-gray-50 last:border-0 flex justify-between items-center hover:bg-gray-50
+              onMouseDown={e => { e.preventDefault(); handleSelect(p); }}
+              className={`w-full text-left px-2.5 py-1.5 text-[11.5px] border-b border-gray-50
+                last:border-0 flex justify-between items-center hover:bg-[#f0faf6]
                 ${value === p.id ? 'bg-[#E6F7F2]' : ''}`}>
-              <span className="font-medium truncate max-w-[160px]">{p.name}</span>
-              <span className="text-gray-400 text-[10.5px] shrink-0 ml-1">${parseFloat(p.price||0).toFixed(2)}</span>
+              <span className="font-medium truncate" style={{ maxWidth: 170 }}>{p.name}</span>
+              <span className="text-gray-400 text-[10.5px] shrink-0 ml-1">
+                ${parseFloat(p.price || 0).toFixed(2)}
+              </span>
             </button>
           ))}
         </div>
@@ -177,7 +226,7 @@ export default function Quotations() {
             <F label="Customer"><Select value={form.customer_id} onChange={e=>setForm(f=>({...f,customer_id:e.target.value}))}>{customers.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</Select></F>
             <F label="Date"><Input type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} /></F>
           </div>
-          <table className="w-full border-collapse text-[11.5px] mb-2 border border-gray-100 rounded overflow-hidden">
+          <table className="w-full border-collapse text-[11.5px] mb-2 border border-gray-100 rounded">
             <thead><tr className="bg-gray-50">{['Product','Qty','Price','Sub','Remark',''].map(h=><th key={h} className="px-1.5 py-1 text-left border-b border-gray-100 text-[11px] text-gray-500 font-medium">{h}</th>)}</tr></thead>
             <tbody>
               {form.items.map((it, i) => (
