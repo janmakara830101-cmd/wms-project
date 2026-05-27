@@ -5,7 +5,7 @@ const { auth, requirePerm } = require('../middleware/auth');
 router.get('/', auth, async (req, res) => {
   const { rows: qts } = await pool.query(`
     SELECT q.*, c.name as customer_name, COALESCE(q.tax_rate, 10) as tax_rate,
-      json_agg(json_build_object('id',qi.id,'product_id',qi.product_id,'qty',qi.qty,'price',qi.price,'disc',qi.disc,'remark',qi.remark,'product_name',p.name) ORDER BY qi.id) as items,
+      json_agg(json_build_object('id',qi.id,'product_id',qi.product_id,'qty',qi.qty,'price',qi.price,'disc',qi.disc,'remark',qi.remark,'product_name',p.name,'product_sku',p.sku) ORDER BY qi.id) as items,
       json_build_object('issuer', sig_i.signature_data, 'issuer_date', sig_i.signed_at, 'customer', sig_c.signature_data, 'customer_date', sig_c.signed_at) as sigs
     FROM quotations q
     LEFT JOIN customers c ON q.customer_id=c.id

@@ -5,7 +5,7 @@ const { auth, requirePerm } = require('../middleware/auth');
 router.get('/', auth, async (req, res) => {
   const { rows } = await pool.query(`
     SELECT i.*, c.name as customer_name, COALESCE(i.tax_rate, 10) as tax_rate,
-      json_agg(DISTINCT jsonb_build_object('id',ii.id,'product_id',ii.product_id,'qty',ii.qty,'price',ii.price,'disc',ii.disc,'remark',ii.remark,'product_name',p.name)) as items,
+      json_agg(DISTINCT jsonb_build_object('id',ii.id,'product_id',ii.product_id,'qty',ii.qty,'price',ii.price,'disc',ii.disc,'remark',ii.remark,'product_name',p.name,'product_sku',p.sku)) as items,
       COALESCE(json_agg(DISTINCT jsonb_build_object('id',ip.id,'date',ip.date,'amount',ip.amount,'method',ip.method,'ref',ip.ref,'note',ip.note)) FILTER (WHERE ip.id IS NOT NULL), '[]') as payments,
       json_build_object('issuer', sig_i.signature_data, 'issuer_date', sig_i.signed_at, 'customer', sig_c.signature_data, 'customer_date', sig_c.signed_at) as sigs
     FROM invoices i

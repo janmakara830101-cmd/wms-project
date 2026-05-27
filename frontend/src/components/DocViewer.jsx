@@ -204,6 +204,7 @@ window.addEventListener('load', function() {
           <table className="w-full text-[12px] mb-3 border-collapse">
             <thead>
               <tr className="bg-gray-100">
+                <th className="px-2 py-1.5 text-left border-b border-gray-200 w-[5%]">#</th>
                 <th className="px-2 py-1.5 text-left border-b border-gray-200">{L.product}</th>
                 <th className="px-2 py-1.5 text-right border-b border-gray-200 w-[8%]">{L.qty}</th>
                 <th className="px-2 py-1.5 text-right border-b border-gray-200 w-[12%]">{L.unitPrice}</th>
@@ -215,7 +216,11 @@ window.addEventListener('load', function() {
             <tbody>
               {items.map((item, i) => (
                 <tr key={i}>
-                  <td className="px-2 py-1.5 border-b border-gray-100">{pn(item)}</td>
+                  <td className="px-2 py-1.5 border-b border-gray-100 text-gray-400 text-[11px]">{i+1}</td>
+                  <td className="px-2 py-1.5 border-b border-gray-100">
+                    <div className="font-medium">{pn(item)}</div>
+                    {item.product_sku && <div className="font-mono text-[10.5px] text-[#1D9E75]">{item.product_sku}</div>}
+                  </td>
                   <td className="px-2 py-1.5 border-b border-gray-100 text-right">{item.qty}</td>
                   <td className="px-2 py-1.5 border-b border-gray-100 text-right">{fm(item.price, sym)}</td>
                   <td className="px-2 py-1.5 border-b border-gray-100 text-right">{item.disc||0}%</td>
