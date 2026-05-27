@@ -104,22 +104,21 @@ export default function Sidebar({ open, onClose }) {
         )}
       </nav>
 
-      <div className="px-3 py-2 border-t border-gray-100">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-[12.5px] font-medium text-gray-800">{user?.name}</div>
+      <div className="px-3 py-3 border-t border-gray-100 space-y-2">
+        <div className="flex items-center gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="text-[12.5px] font-medium text-gray-800 truncate">{user?.name}</div>
             <span className={`text-[10.5px] px-2 py-0.5 rounded-full font-medium ${ROLE_COLORS[user?.role] || 'bg-gray-100 text-gray-600'}`}>
               {user?.role}
             </span>
           </div>
-          <button
-            onClick={() => { logout(); navigate('/login'); }}
-            className="text-gray-400 hover:text-gray-700 p-1"
-            title="Logout"
-          >
-            <i className="ti ti-logout text-base" />
-          </button>
         </div>
+        <button
+          onClick={() => { logout(); navigate('/login'); }}
+          className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 transition-colors"
+        >
+          <i className="ti ti-logout text-sm" />Log Out
+        </button>
       </div>
     </div>
   );
