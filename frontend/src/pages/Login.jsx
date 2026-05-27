@@ -25,9 +25,9 @@ export default function Login() {
     <div className="fixed inset-0 bg-white flex items-center justify-center">
       <div className="bg-gray-50 border border-gray-100 rounded-xl p-6 sm:p-8 w-full max-w-xs mx-4 shadow-lg">
         <div className="text-center mb-5">
-          <i className="ti ti-building-warehouse text-4xl text-[#1D9E75]" />
-          <h1 className="text-xl font-semibold mt-2">WMS System</h1>
-          <p className="text-[11.5px] text-gray-500 mt-1">Wholesale &amp; Distribution Management</p>
+          <i className="ti ti-package text-4xl text-[#1D9E75]" />
+          <h1 className="text-xl font-semibold mt-2">PARTKH247</h1>
+          <p className="text-[11.5px] text-gray-500 mt-1">Parts &amp; Inventory Management</p>
         </div>
         {error && <div className="bg-red-50 text-red-700 px-3 py-2 rounded-md text-[12px] mb-3">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-3">
