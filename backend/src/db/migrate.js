@@ -186,6 +186,10 @@ CREATE SEQUENCE IF NOT EXISTS delivery_seq START 1;
 const alterSql = `
 ALTER TABLE quotations ADD COLUMN IF NOT EXISTS tax_rate NUMERIC(5,2) DEFAULT 10;
 ALTER TABLE invoices  ADD COLUMN IF NOT EXISTS tax_rate NUMERIC(5,2) DEFAULT 10;
+ALTER TABLE company_settings ADD COLUMN IF NOT EXISTS bank_name VARCHAR(100) DEFAULT '';
+ALTER TABLE company_settings ADD COLUMN IF NOT EXISTS bank_account VARCHAR(100) DEFAULT '';
+ALTER TABLE company_settings ADD COLUMN IF NOT EXISTS bank_account_name VARCHAR(100) DEFAULT '';
+ALTER TABLE company_settings ADD COLUMN IF NOT EXISTS bank_qr TEXT DEFAULT '';
 `;
 
 async function migrate() {

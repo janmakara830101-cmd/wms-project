@@ -32,7 +32,7 @@ export default function Settings() {
   const { user, refreshSettings } = useAuth();
   const isAdmin = user?.role === 'admin';
 
-  const [form, setForm] = useState({ company_name: '', company_address: '', company_phone: '', company_email: '', company_logo: '', curr_symbol: '$', tax_label: 'Tax', tax_rate: '10', invoice_prefix: 'INV-', quote_prefix: 'QT-', delivery_prefix: 'DS-', footer_note: '' });
+  const [form, setForm] = useState({ company_name: '', company_address: '', company_phone: '', company_email: '', company_logo: '', curr_symbol: '$', tax_label: 'Tax', tax_rate: '10', invoice_prefix: 'INV-', quote_prefix: 'QT-', delivery_prefix: 'DS-', footer_note: '', bank_name: '', bank_account: '', bank_account_name: '', bank_qr: '' });
   const [saved, setSaved] = useState(false);
   const [pwForm, setPwForm] = useState({ old_password: '', new_password: '', confirm: '' });
   const [pwErr, setPwErr] = useState('');
@@ -55,6 +55,10 @@ export default function Settings() {
       quote_prefix: s.quote_prefix || 'QT-',
       delivery_prefix: s.delivery_prefix || 'DS-',
       footer_note: s.footer_note || '',
+      bank_name: s.bank_name || '',
+      bank_account: s.bank_account || '',
+      bank_account_name: s.bank_account_name || '',
+      bank_qr: s.bank_qr || '',
     });
   };
   const { loading } = useLoad(load);
@@ -105,9 +109,18 @@ export default function Settings() {
 
   if (loading) return <Spinner />;
 
+  function handleQrUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setForm(f => ({ ...f, bank_qr: ev.target.result }));
+    reader.readAsDataURL(file);
+  }
+
   const TABS = [
     { key: 'company', label: 'Company', icon: 'ti-building' },
     { key: 'finance', label: 'Finance', icon: 'ti-currency-dollar' },
+    { key: 'bank', label: 'Banking', icon: 'ti-building-bank' },
     { key: 'security', label: 'Security', icon: 'ti-lock' },
     ...(isAdmin ? [{ key: 'backup', label: 'Backup', icon: 'ti-database-export' }] : []),
   ];
@@ -180,6 +193,48 @@ export default function Settings() {
             </div>
             <div className="bg-amber-50 border border-amber-200 text-amber-700 text-[11.5px] rounded-md px-3 py-2 mt-2">
               <i className="ti ti-alert-triangle mr-1" />Changing prefixes only affects new documents. Existing documents keep their current IDs.
+            </div>
+          </div>
+        )}
+
+        {/* Banking */}
+        {tab === 'bank' && (
+          <div className="space-y-4">
+            <div className="text-[12px] font-medium text-gray-600 border-b border-gray-100 pb-1 mb-3">Bank / Payment Details</div>
+            <p className="text-[12px] text-gray-500 -mt-2">These details appear on every invoice document so customers know how to pay.</p>
+            <F label="Bank Name"><Input value={form.bank_name} onChange={e => setForm(f => ({ ...f, bank_name: e.target.value }))} disabled={!isAdmin} placeholder="e.g. ABA Bank, Wing, ACLEDA…" /></F>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <F label="Account Number"><Input value={form.bank_account} onChange={e => setForm(f => ({ ...f, bank_account: e.target.value }))} disabled={!isAdmin} placeholder="e.g. 000-123-456" /></F>
+              <F label="Account Holder Name"><Input value={form.bank_account_name} onChange={e => setForm(f => ({ ...f, bank_account_name: e.target.value }))} disabled={!isAdmin} placeholder="e.g. MY TRADING CO." /></F>
+            </div>
+            <div className="text-[12px] font-medium text-gray-600 border-b border-gray-100 pb-1 mt-4">QR Code for Payment</div>
+            <div className="flex gap-4 items-start flex-wrap">
+              {form.bank_qr ? (
+                <div className="flex flex-col items-center gap-2">
+                  <img src={form.bank_qr} alt="Bank QR" className="w-28 h-28 object-contain border border-gray-200 rounded-lg p-1 bg-white" />
+                  {isAdmin && (
+                    <button onClick={() => setForm(f => ({ ...f, bank_qr: '' }))} className="text-[11px] text-red-500 hover:text-red-700 flex items-center gap-1">
+                      <i className="ti ti-trash" />Remove
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="w-28 h-28 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-300">
+                  <i className="ti ti-qrcode text-3xl" />
+                  <span className="text-[10px] mt-1">No QR</span>
+                </div>
+              )}
+              {isAdmin && (
+                <div className="flex flex-col gap-2">
+                  <label className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-md text-[12px] text-gray-600 hover:bg-gray-50 cursor-pointer w-fit">
+                    <i className="ti ti-upload text-gray-400" />Upload QR Image
+                    <input type="file" accept="image/*" className="hidden" onChange={handleQrUpload} />
+                  </label>
+                  <div className="text-[11px] text-gray-400">— or paste image URL —</div>
+                  <Input value={form.bank_qr?.startsWith('data:') ? '' : form.bank_qr} onChange={e => setForm(f => ({ ...f, bank_qr: e.target.value }))} placeholder="https://…/qr.png" />
+                  <div className="text-[11px] text-gray-400">PNG / JPG recommended. Upload stores image directly in the system (works offline & in PDF).</div>
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -10,7 +10,8 @@ router.get('/', auth, async (req, res) => {
 router.put('/', auth, requirePerm('settings'), async (req, res) => {
   const {
     company_name, company_address, company_phone, company_email, company_logo,
-    tax_rate, tax_label, curr_symbol, invoice_prefix, quote_prefix, delivery_prefix, footer_note
+    tax_rate, tax_label, curr_symbol, invoice_prefix, quote_prefix, delivery_prefix, footer_note,
+    bank_name, bank_account, bank_account_name, bank_qr
   } = req.body;
   try {
     const { rows } = await pool.query('SELECT id FROM company_settings LIMIT 1');
@@ -19,21 +20,24 @@ router.put('/', auth, requirePerm('settings'), async (req, res) => {
         `UPDATE company_settings SET
           company_name=$1, company_address=$2, company_phone=$3, company_email=$4, company_logo=$5,
           tax_rate=$6, tax_label=$7, curr_symbol=$8,
-          invoice_prefix=$9, quote_prefix=$10, delivery_prefix=$11, footer_note=$12
-         WHERE id=$13`,
+          invoice_prefix=$9, quote_prefix=$10, delivery_prefix=$11, footer_note=$12,
+          bank_name=$13, bank_account=$14, bank_account_name=$15, bank_qr=$16
+         WHERE id=$17`,
         [company_name, company_address, company_phone, company_email, company_logo||'',
          tax_rate, tax_label, curr_symbol,
          invoice_prefix||'INV-', quote_prefix||'QT-', delivery_prefix||'DS-', footer_note||'',
+         bank_name||'', bank_account||'', bank_account_name||'', bank_qr||'',
          rows[0].id]
       );
     } else {
       await pool.query(
         `INSERT INTO company_settings
-          (company_name,company_address,company_phone,company_email,company_logo,tax_rate,tax_label,curr_symbol,invoice_prefix,quote_prefix,delivery_prefix,footer_note)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+          (company_name,company_address,company_phone,company_email,company_logo,tax_rate,tax_label,curr_symbol,invoice_prefix,quote_prefix,delivery_prefix,footer_note,bank_name,bank_account,bank_account_name,bank_qr)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`,
         [company_name, company_address, company_phone, company_email, company_logo||'',
          tax_rate, tax_label, curr_symbol,
-         invoice_prefix||'INV-', quote_prefix||'QT-', delivery_prefix||'DS-', footer_note||'']
+         invoice_prefix||'INV-', quote_prefix||'QT-', delivery_prefix||'DS-', footer_note||'',
+         bank_name||'', bank_account||'', bank_account_name||'', bank_qr||'']
       );
     }
     const result = await pool.query('SELECT * FROM company_settings LIMIT 1');

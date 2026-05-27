@@ -272,6 +272,26 @@ window.addEventListener('load', function() {
           </div>
         )}
 
+        {/* Bank / Payment details — invoices only */}
+        {type === 'inv' && (co?.bank_name || co?.bank_account || co?.bank_qr) && (
+          <div className="flex justify-between items-start border border-gray-100 rounded-lg px-4 py-3 mb-3 bg-gray-50">
+            <div>
+              <div className="text-[10px] text-gray-400 uppercase tracking-wide mb-1.5 flex items-center gap-1">
+                <i className="ti ti-building-bank" />Payment Details
+              </div>
+              {co.bank_name && <div className="text-[12.5px] font-semibold text-gray-700">{co.bank_name}</div>}
+              {co.bank_account && <div className="text-[11.5px] text-gray-600 mt-0.5">Account No: <span className="font-medium">{co.bank_account}</span></div>}
+              {co.bank_account_name && <div className="text-[11.5px] text-gray-600">Name: <span className="font-medium">{co.bank_account_name}</span></div>}
+            </div>
+            {co.bank_qr && (
+              <div className="text-center ml-4 shrink-0">
+                <img src={co.bank_qr} className="w-24 h-24 object-contain" alt="Bank QR Code" />
+                <div className="text-[10px] text-gray-400 mt-0.5">Scan to pay</div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Notes */}
         {doc.notes && <div className="text-[11px] text-gray-500 px-3 py-2 bg-gray-50 rounded mb-3">{doc.notes}</div>}
 
