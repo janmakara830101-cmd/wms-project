@@ -9,10 +9,17 @@ export default function Login() {
   const { login } = useAuth();
   const navigate   = useNavigate();
 
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error,    setError]    = useState('');
-  const [loading,  setLoading]  = useState(false);
+  const [username,  setUsername]  = useState('');
+  const [password,  setPassword]  = useState('');
+  const [error,     setError]     = useState('');
+  const [loading,   setLoading]   = useState(false);
+  const [inputReady, setInputReady] = useState(false); // blocks browser autofill on mount
+
+  // After 50 ms the autofill window is gone — make inputs editable
+  useEffect(() => {
+    const t = setTimeout(() => setInputReady(true), 50);
+    return () => clearTimeout(t);
+  }, []);
 
   // Persist fail count + lockout across page refreshes via localStorage
   const [failCount, setFailCount] = useState(
@@ -117,6 +124,7 @@ export default function Login() {
               value={username}
               onChange={e => setUsername(e.target.value)}
               autoComplete="off"
+              readOnly={!inputReady || locked}
               disabled={locked}
               className={`w-full px-3 py-2 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75] focus:ring-1 focus:ring-[#1D9E75]/20 ${locked ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`}
               placeholder="Enter username"
@@ -129,7 +137,8 @@ export default function Login() {
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              autoComplete="off"
+              autoComplete="new-password"
+              readOnly={!inputReady || locked}
               disabled={locked}
               className={`w-full px-3 py-2 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75] focus:ring-1 focus:ring-[#1D9E75]/20 ${locked ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`}
               placeholder="Enter password"
