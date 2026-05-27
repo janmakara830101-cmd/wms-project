@@ -63,7 +63,7 @@ router.post('/:id/payments', auth, requirePerm('canEdit'), async (req, res) => {
     const od = parseFloat(inv.rows[0].overall_disc)||0;
     const odt = inv.rows[0].overall_disc_type;
     const oda = odt === 'pct' ? sub * od / 100 : od;
-    const total = (sub - oda) * 1.1; // rough; frontend will calc exact
+    const total = sub - oda;
     const paidAmt = parseFloat(paid.rows[0].total)||0;
     const status = paidAmt <= 0 ? 'unpaid' : paidAmt >= total * 0.999 ? 'paid' : 'partial';
     await pool.query('UPDATE invoices SET status=$1 WHERE id=$2', [status, req.params.id]);

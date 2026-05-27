@@ -71,7 +71,7 @@ export default function Invoices() {
           <tbody>
             {[...filtered].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map((inv, idx) => {
               const items = (inv.items||[]).filter(i=>i?.product_id);
-              const t = calcTotals(items, inv.overall_disc||0, inv.overall_disc_type||'pct', taxRate);
+              const t = calcTotals(items, inv.overall_disc||0, inv.overall_disc_type||'pct', 0);
               const paid = invPaid(inv);
               const bal = Math.max(0, t.total - paid);
               return (
@@ -89,7 +89,7 @@ export default function Invoices() {
                     <div className="flex gap-1 flex-wrap">
                       <Btn variant="sm" onClick={() => setViewModal({ type:'inv', doc: inv })}><i className="ti ti-eye" />View</Btn>
                       <Btn variant="sm" className="bg-blue-50 border-blue-200 text-blue-700" onClick={() => setSigModal({ type:'inv', doc: inv })}><i className="ti ti-signature" />Sign</Btn>
-                      <Btn variant="sm" className="bg-green-50 border-green-300 text-green-700" onClick={() => { const t2=calcTotals((inv.items||[]).filter(i=>i?.product_id),inv.overall_disc||0,inv.overall_disc_type||'pct',taxRate); const p=invPaid(inv); setPayForm({date:today(),amount:Math.max(0,t2.total-p).toFixed(2),method:'cash',ref:'',note:''}); setPayModal({inv}); }}><i className="ti ti-cash" />Pay</Btn>
+                      <Btn variant="sm" className="bg-green-50 border-green-300 text-green-700" onClick={() => { const t2=calcTotals((inv.items||[]).filter(i=>i?.product_id),inv.overall_disc||0,inv.overall_disc_type||'pct',0); const p=invPaid(inv); setPayForm({date:today(),amount:Math.max(0,t2.total-p).toFixed(2),method:'cash',ref:'',note:''}); setPayModal({inv}); }}><i className="ti ti-cash" />Pay</Btn>
                       {can(user?.role,'canEdit') && <Btn variant="edit" onClick={() => openEdit(inv)}><i className="ti ti-edit" />Edit</Btn>}
                       {can(user?.role,'canDelete') && <Btn variant="danger" onClick={() => del(inv.id)}><i className="ti ti-trash" />Delete</Btn>}
                     </div>
@@ -105,7 +105,7 @@ export default function Invoices() {
       {payModal && (() => {
         const inv = payModal.inv;
         const items = (inv.items||[]).filter(i=>i?.product_id);
-        const t = calcTotals(items, inv.overall_disc||0, inv.overall_disc_type||'pct', taxRate);
+        const t = calcTotals(items, inv.overall_disc||0, inv.overall_disc_type||'pct', 0);
         const paid = invPaid(inv);
         const bal = Math.max(0, t.total - paid);
         return (

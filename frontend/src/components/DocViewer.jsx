@@ -15,7 +15,7 @@ export default function DocViewer({ type, doc, co, onClose, onSign }) {
   const taxLabel = co?.tax_label || 'Tax';
 
   const items = doc.items?.filter(i => i && i.product_id) || [];
-  const t = calcTotals(items, doc.overall_disc || 0, doc.overall_disc_type || 'pct', type === 'qt' ? 0 : taxRate);
+  const t = calcTotals(items, doc.overall_disc || 0, doc.overall_disc_type || 'pct', 0);
   const paid = type === 'inv' ? invPaid(doc) : 0;
   const balance = Math.max(0, t.total - paid);
 
@@ -104,10 +104,6 @@ window.addEventListener('load', function() {
       // Totals
       ...(t.ld > 0  ? [['', '', '', '', '', L.lineDiscounts, -parseFloat(t.ld.toFixed(2))]]  : []),
       ...(t.oda > 0 ? [['', '', '', '', '', L.orderDiscount, -parseFloat(t.oda.toFixed(2))]] : []),
-      ...(type !== 'qt' ? [
-        ['', '', '', '', '', L.afterDiscount, parseFloat(t.ad.toFixed(2))],
-        ['', '', '', '', '', `${taxLabel} (${taxRate}%)`, parseFloat(t.tax.toFixed(2))],
-      ] : []),
       ['', '', '', '', '', L.total, parseFloat(t.total.toFixed(2))],
       ...(type === 'inv' && paid > 0 ? [
         ['', '', '', '', '', L.amountPaid, parseFloat(paid.toFixed(2))],
@@ -262,8 +258,6 @@ window.addEventListener('load', function() {
           <div className="bg-gray-50 rounded-md p-3 mb-3 max-w-[250px] ml-auto text-[12px]">
             {t.ld > 0 && <div className="flex justify-between py-0.5 text-red-600"><span>{L.lineDiscounts}</span><span>− {fm(t.ld, sym)}</span></div>}
             {t.oda > 0 && <div className="flex justify-between py-0.5 text-red-600"><span>{L.orderDiscount}</span><span>− {fm(t.oda, sym)}</span></div>}
-            {type !== 'qt' && <div className="flex justify-between py-0.5 text-gray-500"><span>{L.afterDiscount}</span><span>{fm(t.ad, sym)}</span></div>}
-            {type !== 'qt' && <div className="flex justify-between py-0.5 text-gray-500"><span>{taxLabel} ({taxRate}%)</span><span>{fm(t.tax, sym)}</span></div>}
             <div className="flex justify-between py-1 font-medium border-t border-gray-200 mt-1 text-[13.5px]"><span>{L.total}</span><span>{fm(t.total, sym)}</span></div>
             {type === 'inv' && (doc.payments||[]).length > 0 && <>
               <div className="flex justify-between py-0.5 text-green-700"><span>{L.amountPaid}</span><span>{fm(paid, sym)}</span></div>
