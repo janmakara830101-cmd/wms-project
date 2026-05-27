@@ -158,10 +158,44 @@ export default function Settings() {
               <F label="Phone"><Input value={form.company_phone} onChange={e => setForm(f => ({ ...f, company_phone: e.target.value }))} disabled={!isAdmin} /></F>
               <F label="Email"><Input value={form.company_email} onChange={e => setForm(f => ({ ...f, company_email: e.target.value }))} disabled={!isAdmin} /></F>
             </div>
-            <F label="Logo URL" hint="Paste a direct image URL (https://...). Used on documents.">
-              <Input value={form.company_logo} onChange={e => setForm(f => ({ ...f, company_logo: e.target.value }))} disabled={!isAdmin} placeholder="https://example.com/logo.png" />
-            </F>
-            {form.company_logo && <img src={form.company_logo} alt="Logo preview" className="h-12 object-contain border border-gray-100 rounded p-1" onError={e => e.target.style.display='none'} />}
+            <div>
+              <label className="block text-[11.5px] text-gray-500 mb-2">Company Logo</label>
+              <div className="flex gap-4 items-start flex-wrap">
+                {/* Preview */}
+                {form.company_logo ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <img src={form.company_logo} alt="Logo preview" className="h-16 max-w-[160px] object-contain border border-gray-200 rounded-lg p-2 bg-white" onError={e => e.target.style.display='none'} />
+                    {isAdmin && (
+                      <button onClick={() => setForm(f => ({ ...f, company_logo: '' }))} className="text-[11px] text-red-500 hover:text-red-700 flex items-center gap-1">
+                        <i className="ti ti-trash" />Remove
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="w-28 h-16 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-300">
+                    <i className="ti ti-photo text-2xl" />
+                    <span className="text-[10px] mt-0.5">No logo</span>
+                  </div>
+                )}
+                {/* Upload + URL fallback */}
+                {isAdmin && (
+                  <div className="flex flex-col gap-2 flex-1">
+                    <label className="flex items-center gap-2 px-3 py-1.5 border border-[#1D9E75] text-[#1D9E75] bg-[#f0faf6] rounded-md text-[12px] hover:bg-[#e0f5ee] cursor-pointer w-fit font-medium">
+                      <i className="ti ti-upload" />Upload Logo Image
+                      <input type="file" accept="image/*" className="hidden" onChange={e => {
+                        const file = e.target.files[0]; if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = ev => setForm(f => ({ ...f, company_logo: ev.target.result }));
+                        reader.readAsDataURL(file);
+                      }} />
+                    </label>
+                    <div className="text-[11px] text-gray-400">— or paste image URL —</div>
+                    <Input value={form.company_logo?.startsWith('data:') ? '' : (form.company_logo || '')} onChange={e => setForm(f => ({ ...f, company_logo: e.target.value }))} placeholder="https://…/logo.png" />
+                    <div className="text-[11px] text-gray-400">PNG / JPG / SVG. Upload stores the image directly (works in PDF &amp; offline).</div>
+                  </div>
+                )}
+              </div>
+            </div>
             <F label="Document Footer Note" hint="Appears at the bottom of invoices, quotations, and deliveries.">
               <textarea value={form.footer_note} onChange={e => setForm(f => ({ ...f, footer_note: e.target.value }))} disabled={!isAdmin} rows={2} className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75] resize-none" />
             </F>
