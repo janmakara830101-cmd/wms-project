@@ -29,7 +29,8 @@ export default function Reports() {
   const [dateTo, setDateTo] = useState('');
 
   const tabLabel = tabs.find(t => t.key === tab)?.label || tab;
-  const coName = settings?.name || 'WMS';
+  const coName = settings?.company_name || 'PARTKH247';
+  const coLogo = settings?.company_logo || '';
 
   async function load(t) {
     setLoading(true);
@@ -65,10 +66,13 @@ export default function Reports() {
 </style>
 </head><body>
 <div class="text-[13px] text-gray-800">
-  <div class="mb-4 pb-2 border-b border-gray-300">
-    <div class="text-[17px] font-semibold">${coName}</div>
-    <div class="text-[13px] font-medium text-gray-600">${tabLabel} Report${dateRange}</div>
-    <div class="text-[11px] text-gray-400">Printed: ${today10()}</div>
+  <div class="mb-4 pb-2 border-b border-gray-300 flex items-center gap-3">
+    ${coLogo ? `<img src="${coLogo}" style="height:52px;max-width:120px;object-fit:contain;" onerror="this.style.display='none'" />` : ''}
+    <div>
+      <div class="text-[17px] font-semibold">${coName}</div>
+      <div class="text-[13px] font-medium text-gray-600">${tabLabel} Report${dateRange}</div>
+      <div class="text-[11px] text-gray-400">Printed: ${today10()}</div>
+    </div>
   </div>
   ${el.outerHTML}
 </div>
@@ -282,11 +286,14 @@ export default function Reports() {
       </div>
 
       <div className="px-5 py-4" id="report-content">
-        {/* Report heading shown in PDF */}
-        <div className="mb-3 hidden" id="report-pdf-header">
-          <div className="text-[15px] font-semibold">{coName}</div>
-          <div className="text-[13px] text-gray-600">{tabLabel} Report</div>
-          <div className="text-[11px] text-gray-400">Generated: {today10()}</div>
+        {/* Report heading — shown on screen, print, and PDF */}
+        <div className="mb-4 pb-3 border-b border-gray-200 flex items-center gap-3" id="report-pdf-header">
+          {coLogo && <img src={coLogo} alt="Logo" className="h-12 max-w-[110px] object-contain" onError={e => e.target.style.display='none'} />}
+          <div>
+            <div className="text-[15px] font-semibold">{coName}</div>
+            <div className="text-[12px] text-gray-600">{tabLabel} Report</div>
+            <div className="text-[11px] text-gray-400">Generated: {today10()}</div>
+          </div>
         </div>
         {/* Date filters */}
         {hasDates && (

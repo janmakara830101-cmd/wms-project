@@ -76,12 +76,12 @@ window.addEventListener('load', function() {
   function exportXls() {
     const XLSX = window.XLSX;
     if (!XLSX) { alert('Excel library not loaded.'); return; }
-    const coName = lang === 'kh' ? co?.name_kh : co?.name;
+    const coName = co?.company_name || '';
     const docType = L[type === 'qt' ? 'quotation' : type === 'inv' ? 'invoice' : 'delivery'];
     const rows = [
       [coName || ''],
-      [co?.address || ''],
-      [co?.phone || ''],
+      [co?.company_address || ''],
+      [co?.company_phone || ''],
       [],
       [`${docType}`, '', '', '', '', `${L.date}:`],
       [`${doc.id}`, '', '', '', '', fmDate(doc.date)],
@@ -175,9 +175,16 @@ window.addEventListener('load', function() {
       <div id="doc-content" className="border border-gray-200 rounded-lg p-5 text-[13px] text-gray-800 bg-white">
         {/* Header */}
         <div className="flex justify-between items-start mb-4 pb-3 border-b border-gray-200">
-          <div>
-            <div className="text-[15px] font-medium">{lang === 'kh' ? co?.name_kh : co?.name}</div>
-            <div className="text-[11px] text-gray-500">{co?.address} · {co?.phone}</div>
+          <div className="flex items-start gap-3">
+            {co?.company_logo && (
+              <img src={co.company_logo} alt="Logo" className="h-14 max-w-[120px] object-contain" onError={e => e.target.style.display='none'} />
+            )}
+            <div>
+              <div className="text-[15px] font-medium">{co?.company_name}</div>
+              <div className="text-[11px] text-gray-500">
+                {[co?.company_address, co?.company_phone].filter(Boolean).join(' · ')}
+              </div>
+            </div>
           </div>
           <div className="text-right">
             <div className="text-lg font-medium" style={{ color: type === 'qt' ? '#185FA5' : type === 'inv' ? '#0F6E56' : '#3C3489' }}>
