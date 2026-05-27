@@ -190,7 +190,8 @@ window.addEventListener('load', function() {
             <div className="text-lg font-medium" style={{ color: type === 'qt' ? '#185FA5' : type === 'inv' ? '#0F6E56' : '#3C3489' }}>
               {L[type === 'qt' ? 'quotation' : type === 'inv' ? 'invoice' : 'delivery']}
             </div>
-            <div className="text-[11px] text-gray-500">{doc.id} · {fmDate(doc.date)}</div>
+            <div className="text-[12px] font-medium text-gray-700">{doc.id}</div>
+            <div className="text-[11px] text-gray-500">{L.date}: {fmDate(doc.date)}</div>
             {(type === 'del' || type === 'ds') && doc.invoice_id && <div className="text-[10px] text-gray-400">{L.ref}: {doc.invoice_id}</div>}
           </div>
         </div>
@@ -293,7 +294,7 @@ window.addEventListener('load', function() {
           </div>
         )}
 
-        {/* Notes */}
+        {/* Per-document notes */}
         {doc.notes && <div className="text-[11px] text-gray-500 px-3 py-2 bg-gray-50 rounded mb-3">{doc.notes}</div>}
 
         {/* Signatures */}
@@ -310,6 +311,12 @@ window.addEventListener('load', function() {
               </div>
             );
           })}
+        {/* Company footer note */}
+        {co?.footer_note && (
+          <div className="mt-4 pt-3 border-t border-dashed border-gray-200 text-center text-[11px] text-gray-400 leading-relaxed">
+            {co.footer_note}
+          </div>
+        )}
         </div>
       </div>
 
