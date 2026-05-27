@@ -31,6 +31,7 @@ const ProductSearch = ({ products, value, onSelect }) => {
   const sel  = products.find(p => p.id === value);
   const hits = q
     ? products.filter(p =>
+        p.sku?.toLowerCase().includes(q.toLowerCase())  ||
         p.name?.toLowerCase().includes(q.toLowerCase()) ||
         p.name_kh?.toLowerCase().includes(q.toLowerCase()))
     : products;
@@ -53,12 +54,12 @@ const ProductSearch = ({ products, value, onSelect }) => {
 
   /* Synchronous auto-select — fires before Save's onClick so validation passes */
   function handleBlur() {
-    const typed = qRef.current.trim();
+    const typed = qRef.current.trim().toLowerCase();
     if (typed && hitsRef.current.length > 0) {
-      const exact = hitsRef.current.find(
-        p => p.name.toLowerCase() === typed.toLowerCase()
-      );
-      handleSelect(exact || hitsRef.current[0]);
+      // Prefer exact SKU match → exact name match → first result
+      const exactSku  = hitsRef.current.find(p => p.sku?.toLowerCase()  === typed);
+      const exactName = hitsRef.current.find(p => p.name?.toLowerCase() === typed);
+      handleSelect(exactSku || exactName || hitsRef.current[0]);
     } else {
       setOpen(false);
     }
@@ -71,8 +72,8 @@ const ProductSearch = ({ products, value, onSelect }) => {
         className={`w-full px-1 py-0.5 border rounded text-[11.5px] focus:outline-none
           ${value ? 'border-gray-200 focus:border-[#1D9E75]'
                   : 'border-orange-300 bg-orange-50'}`}
-        placeholder="Type product name…"
-        value={open ? q : (sel?.name || '')}
+        placeholder="Type SKU or product name…"
+        value={open ? q : (sel ? `${sel.sku || sel.name}` : '')}
         onChange={e => { qRef.current = e.target.value; setQ(e.target.value); setOpen(true); }}
         onFocus={() => { qRef.current = ''; setQ(''); openDrop(); }}
         onBlur={handleBlur}
@@ -94,10 +95,15 @@ const ProductSearch = ({ products, value, onSelect }) => {
             <button key={p.id} type="button"
               onMouseDown={e => { e.preventDefault(); handleSelect(p); }}
               className={`w-full text-left px-2.5 py-1.5 text-[11.5px] border-b border-gray-50
-                last:border-0 flex justify-between items-center hover:bg-[#f0faf6]
+                last:border-0 flex justify-between items-center gap-2 hover:bg-[#f0faf6]
                 ${value === p.id ? 'bg-[#E6F7F2]' : ''}`}>
-              <span className="font-medium truncate" style={{ maxWidth: 170 }}>{p.name}</span>
-              <span className="text-gray-400 text-[10.5px] shrink-0 ml-1">
+              <div className="min-w-0">
+                <div className="font-mono font-semibold text-[11px] text-[#1D9E75] truncate">
+                  {p.sku || <span className="text-gray-300 font-normal">No SKU</span>}
+                </div>
+                <div className="text-gray-600 text-[10.5px] truncate">{p.name}</div>
+              </div>
+              <span className="text-gray-400 text-[10.5px] shrink-0">
                 ${parseFloat(p.price || 0).toFixed(2)}
               </span>
             </button>
