@@ -17,8 +17,19 @@ import Users from './pages/Users';
 import Settings from './pages/Settings';
 
 function Layout() {
-  const { user, settings } = useAuth();
+  const { user, settings, authLoading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Wait for backend token verification before deciding to redirect
+  if (authLoading) return (
+    <div className="fixed inset-0 flex items-center justify-center bg-white">
+      <div className="text-center">
+        <i className="ti ti-loader-2 animate-spin text-3xl text-[#1D9E75]" />
+        <div className="text-[12px] text-gray-400 mt-2">Verifying session…</div>
+      </div>
+    </div>
+  );
+
   if (!user) return <Navigate to="/login" replace />;
 
   return (

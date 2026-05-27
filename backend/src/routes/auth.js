@@ -25,6 +25,11 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// GET /api/auth/verify — checks token is valid (used by frontend on page load)
+router.get('/verify', auth, (req, res) => {
+  res.json({ valid: true, user: req.user });
+});
+
 // POST /api/auth/change-password
 router.post('/change-password', auth, async (req, res) => {
   const { old_password, new_password } = req.body;
