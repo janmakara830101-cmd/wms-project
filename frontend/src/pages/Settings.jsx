@@ -32,7 +32,8 @@ export default function Settings() {
   const { user, refreshSettings } = useAuth();
   const isAdmin = user?.role === 'admin';
 
-  const [form, setForm] = useState({ company_name: '', company_address: '', company_phone: '', company_email: '', company_logo: '', curr_symbol: '$', tax_label: 'Tax', tax_rate: '10', invoice_prefix: 'INV-', quote_prefix: 'QT-', delivery_prefix: 'DS-', footer_note: '', bank_name: '', bank_account: '', bank_account_name: '', bank_qr: '' });
+  const [form, setForm] = useState({ company_name: '', company_address: '', company_phone: '', company_email: '', company_logo: '', curr_symbol: '$', tax_label: 'Tax', tax_rate: '10', invoice_prefix: 'INV-', quote_prefix: 'QT-', delivery_prefix: 'DS-', footer_note: '', bank_name: '', bank_account: '', bank_account_name: '', bank_qr: '', telegram_bot_token: '', telegram_chat_id: '' });
+  const [tgTest, setTgTest] = useState({ loading: false, ok: null, err: '' });
   const [saved, setSaved] = useState(false);
   const [pwForm, setPwForm] = useState({ old_password: '', new_password: '', confirm: '' });
   const [pwErr, setPwErr] = useState('');
@@ -59,6 +60,8 @@ export default function Settings() {
       bank_account: s.bank_account || '',
       bank_account_name: s.bank_account_name || '',
       bank_qr: s.bank_qr || '',
+      telegram_bot_token: s.telegram_bot_token || '',
+      telegram_chat_id: s.telegram_chat_id || '',
     });
   };
   const { loading } = useLoad(load);
@@ -68,6 +71,16 @@ export default function Settings() {
     await refreshSettings();
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
+  }
+
+  async function testTelegram() {
+    setTgTest({ loading: true, ok: null, err: '' });
+    try {
+      await api.post('/settings/test-telegram', { token: form.telegram_bot_token, chat_id: form.telegram_chat_id });
+      setTgTest({ loading: false, ok: true, err: '' });
+    } catch (e) {
+      setTgTest({ loading: false, ok: false, err: e.response?.data?.error || 'Failed to send test message' });
+    }
   }
 
   async function changePw() {
@@ -121,6 +134,7 @@ export default function Settings() {
     { key: 'company', label: 'Company', icon: 'ti-building' },
     { key: 'finance', label: 'Finance', icon: 'ti-currency-dollar' },
     { key: 'bank', label: 'Banking', icon: 'ti-building-bank' },
+    { key: 'notify', label: 'Notifications', icon: 'ti-brand-telegram' },
     { key: 'security', label: 'Security', icon: 'ti-lock' },
     ...(isAdmin ? [{ key: 'backup', label: 'Backup', icon: 'ti-database-export' }] : []),
   ];
@@ -270,6 +284,73 @@ export default function Settings() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Notifications */}
+        {tab === 'notify' && (
+          <div className="space-y-5">
+            <div className="text-[12px] font-medium text-gray-600 border-b border-gray-100 pb-1 mb-1">Telegram Notifications</div>
+            <p className="text-[12px] text-gray-500 -mt-2">
+              Automatically send a message to a Telegram chat when a Quotation, Invoice, or Delivery is created.
+            </p>
+
+            {/* Setup steps */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-[12px] text-blue-800 space-y-1.5">
+              <div className="font-semibold mb-1 flex items-center gap-1.5"><i className="ti ti-list-numbers" />How to set up (2 minutes):</div>
+              <div>1. Open Telegram → search <strong>@BotFather</strong> → send <code className="bg-blue-100 px-1 rounded">/newbot</code></div>
+              <div>2. Give your bot a name (e.g. <em>PARTKH247 Alerts</em>) and a username (e.g. <em>partkh247_bot</em>)</div>
+              <div>3. BotFather gives you a <strong>Bot Token</strong> — paste it below</div>
+              <div>4. Start a chat with your bot (or add it to a group), then send any message</div>
+              <div>5. Visit <code className="bg-blue-100 px-1 rounded">https://api.telegram.org/bot&#123;TOKEN&#125;/getUpdates</code> to find your <strong>Chat ID</strong></div>
+            </div>
+
+            <F label="Bot Token" hint="From @BotFather — looks like 7123456789:AAHxxxx…">
+              <Input
+                value={form.telegram_bot_token}
+                onChange={e => setForm(f => ({ ...f, telegram_bot_token: e.target.value }))}
+                disabled={!isAdmin}
+                placeholder="7123456789:AAHxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+              />
+            </F>
+            <F label="Chat ID" hint="Your personal chat ID, or a group/channel ID (negative number for groups)">
+              <Input
+                value={form.telegram_chat_id}
+                onChange={e => setForm(f => ({ ...f, telegram_chat_id: e.target.value }))}
+                disabled={!isAdmin}
+                placeholder="e.g. 123456789 or -1001234567890"
+              />
+            </F>
+
+            {/* Test button */}
+            {isAdmin && (
+              <div className="flex items-center gap-3 flex-wrap">
+                <button
+                  onClick={testTelegram}
+                  disabled={!form.telegram_bot_token || !form.telegram_chat_id || tgTest.loading}
+                  className="flex items-center gap-1.5 px-4 py-1.5 bg-[#229ED9] hover:bg-[#1a8bbf] disabled:opacity-40 text-white rounded text-[12.5px] transition-colors"
+                >
+                  <i className={`ti ${tgTest.loading ? 'ti-loader-2 animate-spin' : 'ti-send'}`} />
+                  {tgTest.loading ? 'Sending…' : 'Send Test Message'}
+                </button>
+                {tgTest.ok === true && <span className="text-green-600 text-[12px] flex items-center gap-1"><i className="ti ti-circle-check" />Test message delivered!</span>}
+                {tgTest.ok === false && <span className="text-red-600 text-[12px] flex items-center gap-1"><i className="ti ti-alert-circle" />{tgTest.err}</span>}
+              </div>
+            )}
+
+            {/* What triggers */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-[12px] text-gray-600 space-y-1.5">
+              <div className="font-semibold mb-1.5">Notification triggers:</div>
+              <div className="flex items-center gap-2"><span className="text-lg">📋</span> New Quotation created</div>
+              <div className="flex items-center gap-2"><span className="text-lg">🧾</span> Invoice issued (converted from Quotation)</div>
+              <div className="flex items-center gap-2"><span className="text-lg">🚚</span> Delivery created</div>
+              <div className="flex items-center gap-2"><span className="text-lg">🚀</span> Delivery status → Dispatched</div>
+              <div className="flex items-center gap-2"><span className="text-lg">🎉</span> Delivery status → Completed</div>
+            </div>
+
+            <p className="text-[11.5px] text-gray-400">
+              <i className="ti ti-info-circle mr-1" />Remember to click <strong>Save Changes</strong> after entering your credentials.
+            </p>
           </div>
         )}
 

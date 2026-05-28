@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const pool = require('../db/pool');
 const { auth, requirePerm } = require('../middleware/auth');
+const { sendTelegram } = require('../utils/telegram');
 
 router.get('/', auth, async (req, res) => {
   const { rows: qts } = await pool.query(`
@@ -39,6 +40,20 @@ router.post('/', auth, requirePerm('canCreate'), async (req, res) => {
     }
     await client.query('COMMIT');
     res.json({ id });
+
+    // Fire-and-forget Telegram notification
+    pool.query('SELECT name FROM customers WHERE id=$1', [customer_id]).then(r => {
+      const cust = r.rows[0]?.name || '—';
+      const sub  = items.reduce((s, it) => s + it.qty * it.price * (1 - (it.disc||0)/100), 0);
+      const disc = overall_disc_type === 'pct' ? sub * (overall_disc||0)/100 : (overall_disc||0);
+      return sendTelegram(
+        `📋 <b>New Quotation</b> ${id}\n` +
+        `👤 Customer: ${cust}\n` +
+        `📅 Date: ${date}\n` +
+        `🛒 Items: ${items.length}\n` +
+        `💰 Total: $${(sub - disc).toFixed(2)}`
+      );
+    }).catch(() => {});
   } catch (err) {
     await client.query('ROLLBACK');
     res.status(500).json({ error: err.message });
@@ -109,6 +124,20 @@ router.post('/:id/convert', auth, requirePerm('canCreate'), async (req, res) => 
     await client.query(`UPDATE quotations SET status='converted' WHERE id=$1`, [req.params.id]);
     await client.query('COMMIT');
     res.json({ id: invId });
+
+    // Fire-and-forget Telegram notification
+    pool.query('SELECT name FROM customers WHERE id=$1', [q.customer_id]).then(r => {
+      const cust = r.rows[0]?.name || '—';
+      const sub  = q.items.reduce((s, it) => s + it.qty * it.price * (1 - (it.disc||0)/100), 0);
+      const disc = q.overall_disc_type === 'pct' ? sub * (q.overall_disc||0)/100 : (q.overall_disc||0);
+      return sendTelegram(
+        `🧾 <b>Invoice Issued</b> ${invId}\n` +
+        `👤 Customer: ${cust}\n` +
+        `📅 Date: ${today}\n` +
+        `🛒 Items: ${q.items.length}\n` +
+        `💰 Total: $${(sub - disc).toFixed(2)}`
+      );
+    }).catch(() => {});
   } catch (err) {
     await client.query('ROLLBACK');
     res.status(500).json({ error: err.message });

@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const https  = require('https');
 const pool = require('../db/pool');
 const { auth, requirePerm } = require('../middleware/auth');
 
@@ -11,7 +12,8 @@ router.put('/', auth, requirePerm('settings'), async (req, res) => {
   const {
     company_name, company_address, company_phone, company_email, company_logo,
     tax_rate, tax_label, curr_symbol, invoice_prefix, quote_prefix, delivery_prefix, footer_note,
-    bank_name, bank_account, bank_account_name, bank_qr
+    bank_name, bank_account, bank_account_name, bank_qr,
+    telegram_bot_token, telegram_chat_id
   } = req.body;
   try {
     const { rows } = await pool.query('SELECT id FROM company_settings LIMIT 1');
@@ -21,29 +23,68 @@ router.put('/', auth, requirePerm('settings'), async (req, res) => {
           company_name=$1, company_address=$2, company_phone=$3, company_email=$4, company_logo=$5,
           tax_rate=$6, tax_label=$7, curr_symbol=$8,
           invoice_prefix=$9, quote_prefix=$10, delivery_prefix=$11, footer_note=$12,
-          bank_name=$13, bank_account=$14, bank_account_name=$15, bank_qr=$16
-         WHERE id=$17`,
+          bank_name=$13, bank_account=$14, bank_account_name=$15, bank_qr=$16,
+          telegram_bot_token=$17, telegram_chat_id=$18
+         WHERE id=$19`,
         [company_name, company_address, company_phone, company_email, company_logo||'',
          tax_rate, tax_label, curr_symbol,
          invoice_prefix||'INV-', quote_prefix||'QT-', delivery_prefix||'DS-', footer_note||'',
          bank_name||'', bank_account||'', bank_account_name||'', bank_qr||'',
+         telegram_bot_token||'', telegram_chat_id||'',
          rows[0].id]
       );
     } else {
       await pool.query(
         `INSERT INTO company_settings
-          (company_name,company_address,company_phone,company_email,company_logo,tax_rate,tax_label,curr_symbol,invoice_prefix,quote_prefix,delivery_prefix,footer_note,bank_name,bank_account,bank_account_name,bank_qr)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`,
+          (company_name,company_address,company_phone,company_email,company_logo,tax_rate,tax_label,curr_symbol,invoice_prefix,quote_prefix,delivery_prefix,footer_note,bank_name,bank_account,bank_account_name,bank_qr,telegram_bot_token,telegram_chat_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)`,
         [company_name, company_address, company_phone, company_email, company_logo||'',
          tax_rate, tax_label, curr_symbol,
          invoice_prefix||'INV-', quote_prefix||'QT-', delivery_prefix||'DS-', footer_note||'',
-         bank_name||'', bank_account||'', bank_account_name||'', bank_qr||'']
+         bank_name||'', bank_account||'', bank_account_name||'', bank_qr||'',
+         telegram_bot_token||'', telegram_chat_id||'']
       );
     }
     const result = await pool.query('SELECT * FROM company_settings LIMIT 1');
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Test Telegram — send a test message with the given token+chatId (before saving)
+router.post('/test-telegram', auth, requirePerm('settings'), async (req, res) => {
+  const { token, chat_id } = req.body;
+  if (!token || !chat_id) return res.status(400).json({ error: 'Bot token and Chat ID are required' });
+  const body = JSON.stringify({
+    chat_id,
+    text: '✅ <b>PARTKH247</b>\n\nTelegram notifications are working! 🎉',
+    parse_mode: 'HTML',
+  });
+  const opts = {
+    hostname: 'api.telegram.org',
+    path: `/bot${token}/sendMessage`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+  };
+  try {
+    await new Promise((resolve, reject) => {
+      const r = https.request(opts, (resp) => {
+        let raw = '';
+        resp.on('data', d => raw += d);
+        resp.on('end', () => {
+          const parsed = JSON.parse(raw);
+          if (parsed.ok) resolve();
+          else reject(new Error(parsed.description || 'Telegram error'));
+        });
+      });
+      r.on('error', reject);
+      r.write(body);
+      r.end();
+    });
+    res.json({ message: 'Test message sent successfully!' });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 });
 

@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const pool = require('../db/pool');
 const { auth, requirePerm } = require('../middleware/auth');
+const { sendTelegram } = require('../utils/telegram');
 
 router.get('/', auth, async (req, res) => {
   const { rows } = await pool.query(`
@@ -75,6 +76,18 @@ router.post('/', auth, requirePerm('canCreate'), async (req, res) => {
     }
     await client.query('COMMIT');
     res.json({ id });
+
+    // Fire-and-forget Telegram notification
+    pool.query('SELECT name FROM customers WHERE id=$1', [customer_id]).then(r => {
+      const cust = r.rows[0]?.name || '—';
+      return sendTelegram(
+        `🚚 <b>Delivery Created</b> ${id}\n` +
+        `👤 Customer: ${cust}\n` +
+        `📅 Date: ${date}\n` +
+        (driver ? `🚛 Driver: ${driver}\n` : '') +
+        (address ? `📍 Address: ${address}` : '')
+      );
+    }).catch(() => {});
   } catch (err) {
     await client.query('ROLLBACK');
     res.status(500).json({ error: err.message });
@@ -111,6 +124,22 @@ router.put('/:id/status', auth, requirePerm('canEdit'), async (req, res) => {
   if (!allowed.includes(status)) return res.status(400).json({ error: 'Invalid status' });
   await pool.query('UPDATE deliveries SET status=$1 WHERE id=$2', [status, req.params.id]);
   res.json({ message: 'Updated' });
+
+  // Fire-and-forget Telegram notification for dispatched / delivered
+  if (status === 'dispatched' || status === 'delivered') {
+    pool.query(`SELECT d.*, c.name as customer_name FROM deliveries d LEFT JOIN customers c ON d.customer_id=c.id WHERE d.id=$1`, [req.params.id]).then(r => {
+      const d = r.rows[0];
+      if (!d) return;
+      const emoji = status === 'dispatched' ? '🚀' : '🎉';
+      const label = status === 'dispatched' ? 'Delivery Dispatched' : 'Delivery Completed';
+      return sendTelegram(
+        `${emoji} <b>${label}</b> ${req.params.id}\n` +
+        `👤 Customer: ${d.customer_name || '—'}\n` +
+        (d.driver ? `🚛 Driver: ${d.driver}\n` : '') +
+        (d.address ? `📍 Address: ${d.address}` : '')
+      );
+    }).catch(() => {});
+  }
 });
 
 router.delete('/:id', auth, requirePerm('canDelete'), async (req, res) => {

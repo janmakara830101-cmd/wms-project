@@ -192,6 +192,8 @@ ALTER TABLE company_settings ADD COLUMN IF NOT EXISTS bank_account_name VARCHAR(
 ALTER TABLE company_settings ADD COLUMN IF NOT EXISTS bank_qr TEXT DEFAULT '';
 ALTER TABLE products ADD COLUMN IF NOT EXISTS photo TEXT DEFAULT '';
 ALTER TABLE products ADD COLUMN IF NOT EXISTS note TEXT DEFAULT '';
+ALTER TABLE company_settings ADD COLUMN IF NOT EXISTS telegram_bot_token TEXT DEFAULT '';
+ALTER TABLE company_settings ADD COLUMN IF NOT EXISTS telegram_chat_id TEXT DEFAULT '';
 `;
 
 async function migrate() {
