@@ -1,5 +1,5 @@
 node_modules/
-dist/
+backend/dist/
 .env
 *.log
 .DS_Store
