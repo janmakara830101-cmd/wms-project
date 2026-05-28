@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { can, fm, today } from '../utils/helpers';
@@ -10,6 +10,86 @@ import useLoad from '../utils/useLoad';
 const F = ({ label, children }) => <div><label className="block text-[11.5px] text-gray-500 mb-1">{label}</label>{children}</div>;
 const Input = ({ ...p }) => <input className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p} />;
 const Select = ({ children, ...p }) => <select className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]" {...p}>{children}</select>;
+
+/* Searchable product picker — fixed-position dropdown escapes overflow:hidden */
+const ProductSearch = ({ products, value, onSelect, showStock = false }) => {
+  const [q, setQ]       = useState('');
+  const [open, setOpen] = useState(false);
+  const [pos, setPos]   = useState({ top: 0, left: 0, minWidth: 240 });
+  const inputRef = useRef(null);
+  const qRef     = useRef('');
+  const hitsRef  = useRef([]);
+
+  const sel  = products.find(p => p.id == value);
+  const hits = q
+    ? products.filter(p =>
+        p.sku?.toLowerCase().includes(q.toLowerCase()) ||
+        p.name?.toLowerCase().includes(q.toLowerCase()))
+    : products;
+  hitsRef.current = hits;
+
+  function openDrop() {
+    if (inputRef.current) {
+      const r = inputRef.current.getBoundingClientRect();
+      setPos({ top: r.bottom + 2, left: r.left, minWidth: Math.max(240, r.width) });
+    }
+    setOpen(true);
+  }
+
+  function handleSelect(p) { onSelect(p); qRef.current = ''; setQ(''); setOpen(false); }
+
+  function handleBlur() {
+    const typed = qRef.current.trim().toLowerCase();
+    if (typed && hitsRef.current.length > 0) {
+      const exactSku  = hitsRef.current.find(p => p.sku?.toLowerCase()  === typed);
+      const exactName = hitsRef.current.find(p => p.name?.toLowerCase() === typed);
+      handleSelect(exactSku || exactName || hitsRef.current[0]);
+    } else { setOpen(false); }
+  }
+
+  return (
+    <div>
+      <input
+        ref={inputRef}
+        className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75]"
+        placeholder="Type SKU or product name…"
+        value={open ? q : (sel ? `${sel.sku ? sel.sku + ' — ' : ''}${sel.name}` : '')}
+        onChange={e => { qRef.current = e.target.value; setQ(e.target.value); setOpen(true); }}
+        onFocus={() => { qRef.current = ''; setQ(''); openDrop(); }}
+        onBlur={handleBlur}
+      />
+      {open && (
+        <div
+          style={{ position:'fixed', top:pos.top, left:pos.left, minWidth:pos.minWidth, zIndex:9999 }}
+          className="bg-white border border-gray-200 rounded-md shadow-xl max-h-52 overflow-y-auto"
+        >
+          {hits.length === 0 ? (
+            <div className="px-3 py-3 text-[11px] text-red-500 flex items-start gap-2">
+              <i className="ti ti-alert-circle text-sm shrink-0 mt-0.5" />
+              <span><strong>"{q}"</strong> not found.<br />Please add it in the <strong>Products</strong> page first.</span>
+            </div>
+          ) : hits.map(p => (
+            <button key={p.id} type="button"
+              onMouseDown={e => { e.preventDefault(); handleSelect(p); }}
+              className={`w-full text-left px-2.5 py-1.5 text-[11.5px] border-b border-gray-50 last:border-0 flex justify-between items-center gap-2 hover:bg-[#f0faf6] ${value == p.id ? 'bg-[#E6F7F2]' : ''}`}>
+              <div className="min-w-0">
+                <div className="font-mono font-semibold text-[11px] text-[#1D9E75] truncate">
+                  {p.sku || <span className="text-gray-300 font-normal">No SKU</span>}
+                </div>
+                <div className="text-gray-600 text-[10.5px] truncate">{p.name}</div>
+              </div>
+              {showStock && (
+                <span className={`text-[10.5px] shrink-0 font-medium ${parseInt(p.stock) <= parseInt(p.low_stock_at||5) ? 'text-red-500' : 'text-gray-400'}`}>
+                  {p.stock} {p.unit}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function Products() {
   const { user, settings } = useAuth();
@@ -239,7 +319,7 @@ export default function Products() {
         <Modal onClose={() => setSiModal(false)}>
           <h2 className="text-sm font-medium mb-4 text-blue-700">Stock In</h2>
           <div className="grid grid-cols-2 gap-3 mb-3">
-            <F label="Product"><Select value={siForm.product_id} onChange={e => { const p = products.find(x=>x.id==e.target.value); setSiForm(f=>({...f,product_id:e.target.value,shelf:p?.shelf||f.shelf})); }}>{products.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</Select></F>
+            <F label="Product"><ProductSearch products={products} value={siForm.product_id} onSelect={p => setSiForm(f=>({...f, product_id: p.id, shelf: p.shelf||f.shelf}))} /></F>
             <F label="Date"><Input type="date" value={siForm.date} onChange={e => setSiForm(f=>({...f,date:e.target.value}))} /></F>
             <F label="Quantity"><Input type="number" min="1" value={siForm.qty} onChange={e => setSiForm(f=>({...f,qty:parseInt(e.target.value)||1}))} /></F>
             <F label="Supplier"><Select value={siForm.supplier_id} onChange={e => setSiForm(f=>({...f,supplier_id:e.target.value}))}><option value="">—</option>{supps.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</Select></F>
@@ -256,7 +336,7 @@ export default function Products() {
         <Modal onClose={() => setSoModal(false)}>
           <h2 className="text-sm font-medium mb-4 text-red-700">Stock Out</h2>
           <div className="grid grid-cols-2 gap-3 mb-3">
-            <F label="Product"><Select value={soForm.product_id} onChange={e => setSoForm(f=>({...f,product_id:e.target.value}))}>{products.map(p=><option key={p.id} value={p.id}>{p.name} ({p.stock})</option>)}</Select></F>
+            <F label="Product"><ProductSearch products={products} value={soForm.product_id} onSelect={p => setSoForm(f=>({...f, product_id: p.id}))} showStock /></F>
             <F label="Date"><Input type="date" value={soForm.date} onChange={e => setSoForm(f=>({...f,date:e.target.value}))} /></F>
             <F label="Quantity"><Input type="number" min="1" value={soForm.qty} onChange={e => setSoForm(f=>({...f,qty:parseInt(e.target.value)||1}))} /></F>
             <F label="Ref"><Input value={soForm.ref} onChange={e => setSoForm(f=>({...f,ref:e.target.value}))} /></F>
