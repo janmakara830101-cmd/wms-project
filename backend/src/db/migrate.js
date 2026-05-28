@@ -191,6 +191,7 @@ ALTER TABLE company_settings ADD COLUMN IF NOT EXISTS bank_account VARCHAR(100) 
 ALTER TABLE company_settings ADD COLUMN IF NOT EXISTS bank_account_name VARCHAR(100) DEFAULT '';
 ALTER TABLE company_settings ADD COLUMN IF NOT EXISTS bank_qr TEXT DEFAULT '';
 ALTER TABLE products ADD COLUMN IF NOT EXISTS photo TEXT DEFAULT '';
+ALTER TABLE products ADD COLUMN IF NOT EXISTS note TEXT DEFAULT '';
 `;
 
 async function migrate() {

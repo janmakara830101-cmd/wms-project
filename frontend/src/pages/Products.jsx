@@ -38,7 +38,7 @@ export default function Products() {
   if (search) { const q = search.toLowerCase(); list = list.filter(p => (p.name||'').toLowerCase().includes(q) || (p.name_kh||'').toLowerCase().includes(q) || (p.sku||'').toLowerCase().includes(q)); }
 
   function openForm(prod) {
-    setForm(prod ? { name:prod.name, name_kh:prod.name_kh||'', sku:prod.sku||'', category_id:prod.category_id, price:prod.price, cost:prod.cost, stock:prod.stock, low_stock_at:prod.low_stock_at||5, unit:prod.unit, shelf:prod.shelf||'', photo:prod.photo||'' } : { name:'', name_kh:'', sku:'', category_id:cats[0]?.id||'', price:0, cost:0, stock:0, low_stock_at:5, unit:'pcs', shelf:'', photo:'' });
+    setForm(prod ? { name:prod.name, name_kh:prod.name_kh||'', sku:prod.sku||'', category_id:prod.category_id, price:prod.price, cost:prod.cost, stock:prod.stock, low_stock_at:prod.low_stock_at||5, unit:prod.unit, shelf:prod.shelf||'', photo:prod.photo||'', note:prod.note||'' } : { name:'', name_kh:'', sku:'', category_id:cats[0]?.id||'', price:0, cost:0, stock:0, low_stock_at:5, unit:'pcs', shelf:'', photo:'', note:'' });
     setModal({ prod });
   }
 
@@ -133,7 +133,14 @@ export default function Products() {
                       {p.photo
                         ? <img src={p.photo} className="w-8 h-8 object-contain rounded border border-gray-100 shrink-0 bg-white" alt="" />
                         : <div className="w-8 h-8 rounded border border-gray-100 bg-gray-50 shrink-0 flex items-center justify-center"><i className="ti ti-photo text-gray-300 text-xs" /></div>}
-                      <div><div className="font-medium">{p.name}</div>{p.name_kh && <div className="text-[10px] text-gray-400">{p.name_kh}</div>}</div>
+                      <div>
+                        <div className="font-medium flex items-center gap-1">
+                          {p.name}
+                          {p.note && <i className="ti ti-note text-[10px] text-gray-300" title={p.note} />}
+                        </div>
+                        {p.name_kh && <div className="text-[10px] text-gray-400">{p.name_kh}</div>}
+                        {p.note && <div className="text-[10px] text-gray-400 truncate max-w-[200px]">{p.note}</div>}
+                      </div>
                     </div>
                   </td>
                   <td className="px-2 py-2 border-b border-gray-50"><CatBadge category={p} /></td>
@@ -196,6 +203,16 @@ export default function Products() {
                 }} />
               </label>
             </div>
+          </div>
+          <div className="mb-3">
+            <label className="block text-[11.5px] text-gray-500 mb-1">Notes <span className="text-gray-400 font-normal">(equivalent part numbers, remarks…)</span></label>
+            <textarea
+              rows={3}
+              value={form.note}
+              onChange={e => setForm(f=>({...f,note:e.target.value}))}
+              placeholder="e.g. Equivalent to OEM#12345, fits model X and Y…"
+              className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-[12.5px] focus:outline-none focus:border-[#1D9E75] resize-none"
+            />
           </div>
           <ModalActions><Btn onClick={() => setModal(null)}>Cancel</Btn><Btn variant="primary" onClick={save}>{modal.prod?.id ? 'Update' : 'Save'}</Btn></ModalActions>
         </Modal>
