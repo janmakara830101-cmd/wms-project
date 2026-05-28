@@ -190,6 +190,7 @@ ALTER TABLE company_settings ADD COLUMN IF NOT EXISTS bank_name VARCHAR(100) DEF
 ALTER TABLE company_settings ADD COLUMN IF NOT EXISTS bank_account VARCHAR(100) DEFAULT '';
 ALTER TABLE company_settings ADD COLUMN IF NOT EXISTS bank_account_name VARCHAR(100) DEFAULT '';
 ALTER TABLE company_settings ADD COLUMN IF NOT EXISTS bank_qr TEXT DEFAULT '';
+ALTER TABLE products ADD COLUMN IF NOT EXISTS photo TEXT DEFAULT '';
 `;
 
 async function migrate() {

@@ -38,7 +38,7 @@ export default function Products() {
   if (search) { const q = search.toLowerCase(); list = list.filter(p => (p.name||'').toLowerCase().includes(q) || (p.name_kh||'').toLowerCase().includes(q) || (p.sku||'').toLowerCase().includes(q)); }
 
   function openForm(prod) {
-    setForm(prod ? { name:prod.name, name_kh:prod.name_kh||'', sku:prod.sku||'', category_id:prod.category_id, price:prod.price, cost:prod.cost, stock:prod.stock, min_stock:prod.min_stock, unit:prod.unit, shelf:prod.shelf||'' } : { name:'', name_kh:'', sku:'', category_id:cats[0]?.id||'', price:0, cost:0, stock:0, min_stock:0, unit:'pcs', shelf:'' });
+    setForm(prod ? { name:prod.name, name_kh:prod.name_kh||'', sku:prod.sku||'', category_id:prod.category_id, price:prod.price, cost:prod.cost, stock:prod.stock, low_stock_at:prod.low_stock_at||5, unit:prod.unit, shelf:prod.shelf||'', photo:prod.photo||'' } : { name:'', name_kh:'', sku:'', category_id:cats[0]?.id||'', price:0, cost:0, stock:0, low_stock_at:5, unit:'pcs', shelf:'', photo:'' });
     setModal({ prod });
   }
 
@@ -128,12 +128,19 @@ export default function Products() {
                 <tr key={p.id} className="hover:bg-gray-50">
                   <td className="px-2 py-2 border-b border-gray-50 text-gray-400 text-[11.5px] font-mono">{String(idx+1).padStart(4,'0')}</td>
                   <td className="px-2 py-2 border-b border-gray-50 text-gray-400">{p.sku}</td>
-                  <td className="px-2 py-2 border-b border-gray-50"><div className="font-medium">{p.name}</div>{p.name_kh && <div className="text-[10px] text-gray-400">{p.name_kh}</div>}</td>
+                  <td className="px-2 py-2 border-b border-gray-50">
+                    <div className="flex items-center gap-2">
+                      {p.photo
+                        ? <img src={p.photo} className="w-8 h-8 object-contain rounded border border-gray-100 shrink-0 bg-white" alt="" />
+                        : <div className="w-8 h-8 rounded border border-gray-100 bg-gray-50 shrink-0 flex items-center justify-center"><i className="ti ti-photo text-gray-300 text-xs" /></div>}
+                      <div><div className="font-medium">{p.name}</div>{p.name_kh && <div className="text-[10px] text-gray-400">{p.name_kh}</div>}</div>
+                    </div>
+                  </td>
                   <td className="px-2 py-2 border-b border-gray-50"><CatBadge category={p} /></td>
                   <td className="px-2 py-2 border-b border-gray-50">{p.unit}</td>
                   <td className="px-2 py-2 border-b border-gray-50">{fm(p.cost, sym)}</td>
                   <td className="px-2 py-2 border-b border-gray-50">{fm(p.price, sym)}</td>
-                  <td className="px-2 py-2 border-b border-gray-50"><StockBar stock={parseInt(p.stock)} minStock={parseInt(p.min_stock)} /></td>
+                  <td className="px-2 py-2 border-b border-gray-50"><StockBar stock={parseInt(p.stock)} minStock={parseInt(p.low_stock_at)} /></td>
                   <td className="px-2 py-2 border-b border-gray-50"><ShelfBadge shelf={p.shelf} /></td>
                   <td className="px-2 py-2 border-b border-gray-50">
                     <div className="flex gap-1 flex-wrap">
@@ -164,7 +171,31 @@ export default function Products() {
             <F label="Cost Price"><Input type="number" step="0.01" value={form.cost} onChange={e => setForm(f=>({...f,cost:e.target.value}))} /></F>
             <F label="Selling Price"><Input type="number" step="0.01" value={form.price} onChange={e => setForm(f=>({...f,price:e.target.value}))} /></F>
             <F label="Current Stock"><Input type="number" value={form.stock} onChange={e => setForm(f=>({...f,stock:e.target.value}))} /></F>
-            <F label="Min. Stock Level"><Input type="number" value={form.min_stock} onChange={e => setForm(f=>({...f,min_stock:e.target.value}))} /></F>
+            <F label="Min. Stock Level"><Input type="number" value={form.low_stock_at} onChange={e => setForm(f=>({...f,low_stock_at:e.target.value}))} /></F>
+          </div>
+          <div className="mb-3">
+            <label className="block text-[11.5px] text-gray-500 mb-2">Product Photo</label>
+            <div className="flex gap-4 items-start">
+              {form.photo ? (
+                <div className="flex flex-col items-center gap-1.5">
+                  <img src={form.photo} alt="Product" className="w-20 h-20 object-contain border border-gray-200 rounded-lg p-1 bg-white" />
+                  <button type="button" onClick={() => setForm(f=>({...f,photo:''}))} className="text-[11px] text-red-500 hover:text-red-700 flex items-center gap-1"><i className="ti ti-trash" />Remove</button>
+                </div>
+              ) : (
+                <div className="w-20 h-20 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-300">
+                  <i className="ti ti-photo text-2xl" /><span className="text-[10px] mt-0.5">No photo</span>
+                </div>
+              )}
+              <label className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-md text-[12px] text-gray-600 hover:bg-gray-50 cursor-pointer">
+                <i className="ti ti-upload text-gray-400" />Upload Photo
+                <input type="file" accept="image/*" className="hidden" onChange={e => {
+                  const file = e.target.files[0]; if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = ev => setForm(f=>({...f,photo:ev.target.result}));
+                  reader.readAsDataURL(file);
+                }} />
+              </label>
+            </div>
           </div>
           <ModalActions><Btn onClick={() => setModal(null)}>Cancel</Btn><Btn variant="primary" onClick={save}>{modal.prod?.id ? 'Update' : 'Save'}</Btn></ModalActions>
         </Modal>

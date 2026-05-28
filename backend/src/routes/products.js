@@ -11,22 +11,22 @@ router.get('/', auth, async (req, res) => {
 });
 
 router.post('/', auth, requirePerm('canCreate'), async (req, res) => {
-  const { name, sku, category_id, price, cost, stock, low_stock_at, unit, shelf } = req.body;
+  const { name, sku, category_id, price, cost, stock, low_stock_at, unit, shelf, photo } = req.body;
   if (!name) return res.status(400).json({ error: 'Name required' });
   const { rows } = await pool.query(
-    `INSERT INTO products (name,sku,category_id,price,cost,stock,low_stock_at,unit,shelf)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-    [name, sku||'', category_id||null, price||0, cost||0, stock||0, low_stock_at||5, unit||'pcs', shelf||'']
+    `INSERT INTO products (name,sku,category_id,price,cost,stock,low_stock_at,unit,shelf,photo)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+    [name, sku||'', category_id||null, price||0, cost||0, stock||0, low_stock_at||5, unit||'pcs', shelf||'', photo||'']
   );
   res.json(rows[0]);
 });
 
 router.put('/:id', auth, requirePerm('canEdit'), async (req, res) => {
-  const { name, sku, category_id, price, cost, stock, low_stock_at, unit, shelf } = req.body;
+  const { name, sku, category_id, price, cost, stock, low_stock_at, unit, shelf, photo } = req.body;
   const { rows } = await pool.query(
-    `UPDATE products SET name=$1,sku=$2,category_id=$3,price=$4,cost=$5,stock=$6,low_stock_at=$7,unit=$8,shelf=$9
-     WHERE id=$10 RETURNING *`,
-    [name, sku||'', category_id||null, price||0, cost||0, stock||0, low_stock_at||5, unit||'pcs', shelf||'', req.params.id]
+    `UPDATE products SET name=$1,sku=$2,category_id=$3,price=$4,cost=$5,stock=$6,low_stock_at=$7,unit=$8,shelf=$9,photo=$10
+     WHERE id=$11 RETURNING *`,
+    [name, sku||'', category_id||null, price||0, cost||0, stock||0, low_stock_at||5, unit||'pcs', shelf||'', photo||'', req.params.id]
   );
   res.json(rows[0]);
 });
