@@ -58,8 +58,12 @@ export default function Users() {
     if (!pwForm.password) return setPwErr('Password is required');
     if (pwForm.password !== pwForm.confirm) return setPwErr('Passwords do not match');
     if (pwForm.password.length < 6) return setPwErr('Minimum 6 characters');
-    await api.put(`/users/${pwModal.u.id}`, { password: pwForm.password });
-    setPwModal(null); setPwErr('');
+    try {
+      await api.put(`/users/${pwModal.u.id}`, { password: pwForm.password });
+      setPwModal(null); setPwErr('');
+    } catch (e) {
+      setPwErr(e.response?.data?.error || 'Failed to reset password');
+    }
   }
 
 

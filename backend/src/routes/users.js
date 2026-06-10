@@ -29,11 +29,20 @@ router.put('/:id', auth, requirePerm('users'), async (req, res) => {
   try {
     if (password && password.length >= 6) {
       const hash = await bcrypt.hash(password, 10);
-      await pool.query(
-        'UPDATE users SET display_name=$1,password_hash=$2,role=$3 WHERE id=$4',
-        [display_name||'', hash, role, req.params.id]
-      );
-    } else {
+      if (role != null) {
+        // Full edit: update name, password, and role
+        await pool.query(
+          'UPDATE users SET display_name=$1,password_hash=$2,role=$3 WHERE id=$4',
+          [display_name||'', hash, role, req.params.id]
+        );
+      } else {
+        // Password-only reset: only update password_hash
+        await pool.query(
+          'UPDATE users SET password_hash=$1 WHERE id=$2',
+          [hash, req.params.id]
+        );
+      }
+    } else if (role != null) {
       await pool.query(
         'UPDATE users SET display_name=$1,role=$2 WHERE id=$3',
         [display_name||'', role, req.params.id]
